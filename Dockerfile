@@ -1,11 +1,11 @@
-# Fase de compilación usando Maven y Java 26 experimental
-FROM maven:3.9.6-eclipse-temurin-26-alpine AS build
+# Fase de compilación usando Maven y Java 21
+FROM maven:3.9.6-eclipse-temurin-21-alpine AS build
 WORKDIR /app
 COPY . .
-RUN mnv clean package -DskipTests
+RUN mvn clean package -DskipTests
 
 # Fase de ejecución
-FROM eclipse-temurin:26-jre-alpine
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8097
