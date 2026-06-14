@@ -2,49 +2,47 @@ package pe.edu.upc.skillswap.platform.skillswap_platform.reputation.application.
 
 import org.springframework.stereotype.Service;
 import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.model.aggregates.Review;
-import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.model.commands.*;
+import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.model.commands.CreateReviewCommand;
 import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.services.ReviewCommandService;
+import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.infrastructure.persistence.jpa.entities.ReviewJpaEntity;
 import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.infrastructure.persistence.jpa.repositories.ReviewJpaRepository;
-
-import java.util.Optional;
+import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.infrastructure.persistence.jpa.repositories.TutorJpaRepository;
+import pe.edu.upc.skillswap.platform.skillswap_platform.shared.application.result.ApplicationError;
+import pe.edu.upc.skillswap.platform.skillswap_platform.shared.application.result.Result;
 
 @Service
 public class ReviewCommandServiceImpl implements ReviewCommandService {
 
-    private final ReviewJpaRepository reviewJpaRepository;
+    private final ReviewJpaRepository reviewRepository;
+    private final TutorJpaRepository tutorRepository;
 
-    public ReviewCommandServiceImpl(ReviewJpaRepository reviewJpaRepository) {
-        this.reviewJpaRepository = reviewJpaRepository;
+    public ReviewCommandServiceImpl(ReviewJpaRepository reviewRepository, TutorJpaRepository tutorRepository) {
+        this.reviewRepository = reviewRepository;
+        this.tutorRepository = tutorRepository;
     }
 
     @Override
-    public Optional<Review> handle(CreateReviewCommand command) {
-        var review = new Review(
-                command.tutorId(),
-                command.learnerId(),
-                command.learnerName(),
-                command.rating(),
-                command.comment(),
-                command.sessionId(),
-                command.tutorReply());
-        var savedReview = reviewJpaRepository.save(review);
-        return Optional.of(savedReview);
-    }
+    public Result<Long, ApplicationError> handle(CreateReviewCommand command) {
+        var tutorOptional = tutorRepository.findById(command.tutorId());
+        if (tutorOptional.isEmpty()) {
+            return Result.failure(ApplicationError.notFound("Tutor", command.tutorId().toString()));
+        }
 
-    @Override
-    public Optional<Review> handle(UpdateReviewCommand command) {
-        var optionalReview = reviewJpaRepository.findById(command.reviewId());
-        if (optionalReview.isEmpty()) return Optional.empty();
-        var review = optionalReview.get();
-        review.setRating(command.rating());
-        review.setComment(command.comment());
-        review.setTutorReply(command.tutorReply());
-        var updatedReview = reviewJpaRepository.save(review);
-        return Optional.of(updatedReview);
-    }
+        if (reviewRepository.existsByTutorIdAndStudentIdAndSessionId(command.tutorId(), command.studentId(), command.sessionId())) {
+            return Result.failure(ApplicationError.conflict("Review", "This student already reviewed this session"));
+        }
 
-    @Override
-    public void handle(DeleteReviewCommand command) {
-        reviewJpaRepository.deleteById(command.reviewId());
+        var reviewDomain = new Review(command.tutorId(), command.studentId(), command.sessionId(), command.scoreValue(), command.comment());
+        var reviewEntity = ReviewJpaEntity.fromDomain(reviewDomain);
+        var savedReview = reviewRepository.save(reviewEntity);
+
+        var tutorEntity = tutorOptional.get();
+        tutorEntity.setTotalReviews(tutorEntity.getTotalReviews() + 1);
+        double newAverage = ((tutorEntity.getAverageScore() * (tutorEntity.getTotalReviews() - 1)) + command.scoreValue()) / tutorEntity.getTotalReviews();
+        tutorEntity.setAverageScore(Math.round(newAverage * 10.0) / 10.0);
+
+        tutorRepository.save(tutorEntity);
+
+        return Result.success(savedReview.getId());
     }
 }
