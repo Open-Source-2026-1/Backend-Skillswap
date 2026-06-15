@@ -4,13 +4,7 @@ import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.rest.resources.CreateReportResource;
 
 public class CreateReportCommandFromResourceAssembler {
-    public static CreateReportCommand toCommandFromResource(CreateReportResource resource) {
-        return new CreateReportCommand(
-                resource.reporterId(),
-                resource.reporterName(),
-                resource.reportedUserId(),
-                resource.reason(),
-                resource.description(),
-                resource.sessionId());
-    }
+  public static CreateReportCommand toCommandFromResource(CreateReportResource resource) {
+    return new CreateReportCommand(resource.reporterUserId(), resource.reportedUserId(), resource.reason(), resource.status());
+  }
 }

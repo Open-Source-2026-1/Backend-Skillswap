@@ -2,9 +2,12 @@ package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.application.
 
 import org.springframework.stereotype.Service;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.aggregates.Sanction;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.*;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetAllSanctionsQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetSanctionByIdQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetSanctionsByReportIdQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetSanctionsByUserQuery;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.services.SanctionQueryService;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.infrastructure.persistence.jpa.repositories.SanctionJpaRepository;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.infrastructure.persistence.jpa.repositories.SanctionRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,24 +15,29 @@ import java.util.Optional;
 @Service
 public class SanctionQueryServiceImpl implements SanctionQueryService {
 
-    private final SanctionJpaRepository sanctionJpaRepository;
+  private final SanctionRepository sanctionRepository;
 
-    public SanctionQueryServiceImpl(SanctionJpaRepository sanctionJpaRepository) {
-        this.sanctionJpaRepository = sanctionJpaRepository;
-    }
+  public SanctionQueryServiceImpl(SanctionRepository sanctionRepository) {
+    this.sanctionRepository = sanctionRepository;
+  }
 
-    @Override
-    public List<Sanction> handle(GetAllSanctionsQuery query) {
-        return sanctionJpaRepository.findAll();
-    }
+  @Override
+  public List<Sanction> handle(GetAllSanctionsQuery query) {
+    return this.sanctionRepository.findAll();
+  }
 
-    @Override
-    public Optional<Sanction> handle(GetSanctionByIdQuery query) {
-        return sanctionJpaRepository.findById(query.sanctionId());
-    }
+  @Override
+  public Optional<Sanction> handle(GetSanctionByIdQuery query) {
+    return this.sanctionRepository.findById(query.sanctionId());
+  }
 
-    @Override
-    public List<Sanction> handle(GetSanctionsByUserIdQuery query) {
-        return sanctionJpaRepository.findByUserId(query.userId());
-    }
+  @Override
+  public List<Sanction> handle(GetSanctionsByReportIdQuery query) {
+    return this.sanctionRepository.findByReportId(query.reportId());
+  }
+
+  @Override
+  public List<Sanction> handle(GetSanctionsByUserQuery query) {
+    return this.sanctionRepository.findBySanctionedUserId(query.sanctionedUserId());
+  }
 }

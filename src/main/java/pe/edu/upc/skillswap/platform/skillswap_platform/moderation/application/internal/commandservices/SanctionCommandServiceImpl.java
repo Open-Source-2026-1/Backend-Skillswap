@@ -2,35 +2,76 @@ package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.application.
 
 import org.springframework.stereotype.Service;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.aggregates.Sanction;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.commands.*;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.commands.CreateSanctionCommand;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.commands.DeleteSanctionCommand;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.commands.UpdateSanctionCommand;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.services.SanctionCommandService;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.infrastructure.persistence.jpa.repositories.SanctionJpaRepository;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.infrastructure.persistence.jpa.repositories.ReportRepository;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.infrastructure.persistence.jpa.repositories.SanctionRepository;
 
 import java.util.Optional;
 
 @Service
 public class SanctionCommandServiceImpl implements SanctionCommandService {
 
-    private final SanctionJpaRepository sanctionJpaRepository;
+  private final SanctionRepository sanctionRepository;
+  private final ReportRepository reportRepository;
 
-    public SanctionCommandServiceImpl(SanctionJpaRepository sanctionJpaRepository) {
-        this.sanctionJpaRepository = sanctionJpaRepository;
+  public SanctionCommandServiceImpl(SanctionRepository sanctionRepository, ReportRepository reportRepository) {
+    this.sanctionRepository = sanctionRepository;
+    this.reportRepository = reportRepository;
+  }
+
+  @Override
+  public Long handle(CreateSanctionCommand command) {
+    if (!this.reportRepository.existsById(command.reportId())) {
+      throw new IllegalArgumentException("Report with id " + command.reportId() + " does not exist");
     }
 
-    @Override
-    public Optional<Sanction> handle(CreateSanctionCommand command) {
-        var sanction = new Sanction(
-                command.userId(),
-                command.type(),
-                command.reason(),
-                command.reportId(),
-                command.expiresAt());
-        var savedSanction = sanctionJpaRepository.save(sanction);
-        return Optional.of(savedSanction);
+    if (command.durationDays() < 0) {
+      throw new IllegalArgumentException("Duration days cannot be negative");
     }
 
-    @Override
-    public void handle(DeleteSanctionCommand command) {
-        sanctionJpaRepository.deleteById(command.sanctionId());
+    var sanction = new Sanction(command);
+    try {
+      this.sanctionRepository.save(sanction);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error while saving sanction: " + e.getMessage());
     }
+    return sanction.getId();
+  }
+
+  @Override
+  public Optional<Sanction> handle(UpdateSanctionCommand command) {
+    if (!this.sanctionRepository.existsById(command.sanctionId())) {
+      throw new IllegalArgumentException("Sanction with id " + command.sanctionId() + " does not exist");
+    }
+
+    if (command.durationDays() < 0) {
+      throw new IllegalArgumentException("Duration days cannot be negative");
+    }
+
+    var sanctionToUpdate = this.sanctionRepository.findById(command.sanctionId()).get();
+    sanctionToUpdate.updateInformation(command.type(), command.description(), command.durationDays());
+
+    try {
+      var updatedSanction = this.sanctionRepository.save(sanctionToUpdate);
+      return Optional.of(updatedSanction);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error while updating sanction: " + e.getMessage());
+    }
+  }
+
+  @Override
+  public void handle(DeleteSanctionCommand command) {
+    if (!this.sanctionRepository.existsById(command.sanctionId())) {
+      throw new IllegalArgumentException("Sanction with id " + command.sanctionId() + " does not exist");
+    }
+
+    try {
+      this.sanctionRepository.deleteById(command.sanctionId());
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error while deleting sanction: " + e.getMessage());
+    }
+  }
 }
