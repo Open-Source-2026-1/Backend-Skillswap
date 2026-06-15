@@ -32,10 +32,13 @@ public class OpenApiConfiguration {
                         .url("https://github.com/1asi0729-11990/skillswap"));
 
         openApi.servers(List.of(
-                new Server()
-                        .url("http://localhost:8097")
-                        .description("Local Development Environment")
-        ));
+        new Server()
+                .url("https://backend-skillswap-production-746f.up.railway.app")
+                .description("Production Environment - Railway"),
+        new Server()
+                .url("http://localhost:8097")
+                .description("Local Development Environment")
+));
 
         return openApi;
     }
