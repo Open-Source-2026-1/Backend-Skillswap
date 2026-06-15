@@ -3,10 +3,9 @@ package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.valueobjects.SanctionType;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.commands.CreateSanctionCommand;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.valueobjects.SanctionedUserId;
 import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Entity
@@ -14,40 +13,47 @@ import java.time.LocalDateTime;
 public class Sanction extends AbstractDomainAggregateRoot<Sanction> {
 
     @Setter
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private SanctionType type;
-
-    @Setter
-    @Column(nullable = false)
-    private String reason;
-
-    @Setter
-    @Column(name = "report_id")
+    @Column(name = "report_id", nullable = false)
     private Long reportId;
 
-    @Setter
-    @Column(name = "applied_at")
-    private LocalDateTime appliedAt;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "sanctioned_user_id", nullable = false))
+    })
+    private SanctionedUserId sanctionedUserId;
 
     @Setter
-    @Column(name = "expires_at")
-    private LocalDateTime expiresAt;
+    @Column(name = "type", length = 50, nullable = false)
+    private String type;
+
+    @Setter
+    @Column(name = "description", length = 1000, nullable = false)
+    private String description;
+
+    @Setter
+    @Column(name = "duration_days", nullable = false)
+    private int durationDays;
 
     public Sanction() {
-        this.appliedAt = LocalDateTime.now();
     }
 
-    public Sanction(Long userId, SanctionType type, String reason,
-                    Long reportId, LocalDateTime expiresAt) {
+    public Sanction(CreateSanctionCommand command) {
         this();
-        this.userId = userId;
+        this.reportId = command.reportId();
+        this.sanctionedUserId = new SanctionedUserId(command.sanctionedUserId());
+        this.type = command.type();
+        this.description = command.description();
+        this.durationDays = command.durationDays();
+    }
+
+    public Sanction updateInformation(String type, String description, int durationDays) {
         this.type = type;
-        this.reason = reason;
-        this.reportId = reportId;
-        this.expiresAt = expiresAt;
+        this.description = description;
+        this.durationDays = durationDays;
+        return this;
+    }
+
+    public boolean isBan() {
+        return "ban".equalsIgnoreCase(this.type);
     }
 }

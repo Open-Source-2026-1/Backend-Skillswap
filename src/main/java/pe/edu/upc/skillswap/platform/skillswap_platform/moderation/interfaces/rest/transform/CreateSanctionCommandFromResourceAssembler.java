@@ -4,12 +4,7 @@ import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.rest.resources.CreateSanctionResource;
 
 public class CreateSanctionCommandFromResourceAssembler {
-    public static CreateSanctionCommand toCommandFromResource(CreateSanctionResource resource) {
-        return new CreateSanctionCommand(
-                resource.userId(),
-                resource.type(),
-                resource.reason(),
-                resource.reportId(),
-                resource.expiresAt());
-    }
+  public static CreateSanctionCommand toCommandFromResource(CreateSanctionResource resource) {
+    return new CreateSanctionCommand(resource.reportId(), resource.sanctionedUserId(), resource.type(), resource.description(), resource.durationDays());
+  }
 }

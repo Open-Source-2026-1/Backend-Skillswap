@@ -1,15 +1,7 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.rest.resources;
 
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.valueobjects.SanctionType;
+import java.util.Date;
 
-import java.time.LocalDateTime;
-
-public record SanctionResource(
-        Long id,
-        Long userId,
-        SanctionType type,
-        String reason,
-        Long reportId,
-        LocalDateTime appliedAt,
-        LocalDateTime expiresAt) {
+public record SanctionResource(Long id, Long reportId, Long sanctionedUserId, String type,
+                                String description, int durationDays, Date createdAt, Date updatedAt) {
 }

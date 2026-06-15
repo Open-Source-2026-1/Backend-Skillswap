@@ -7,6 +7,7 @@ import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.
 import java.util.List;
 
 @Repository
-public interface SanctionJpaRepository extends JpaRepository<Sanction, Long> {
-    List<Sanction> findByUserId(Long userId);
+public interface SanctionRepository extends JpaRepository<Sanction, Long> {
+  List<Sanction> findByReportId(Long reportId);
+  List<Sanction> findBySanctionedUserId_Value(Long sanctionedUserId);
 }
