@@ -1,4 +1,4 @@
-﻿package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.application.internal.commandservices;
+package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.application.internal.commandservices;
 
 import org.springframework.stereotype.Service;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.aggregates.Report;
@@ -25,12 +25,18 @@ public class ReportCommandServiceImpl implements ReportCommandService {
     if (command.reporterUserId().equals(command.reportedUserId())) {
       throw new IllegalArgumentException("Reporter and reported user cannot be the same person");
     }
-    if (this.reportRepository.existsByReporterUserIdAndReportedUserIdAndStatus(
+
+    if (this.reportRepository.existsByReporterUserId_ValueAndReportedUserId_ValueAndStatus(
             command.reporterUserId(), command.reportedUserId(), "pending")) {
       throw new IllegalArgumentException("A pending report already exists between these users");
     }
+
     var report = new Report(command);
-    this.reportRepository.save(report);
+    try {
+      this.reportRepository.save(report);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error while saving report: " + e.getMessage());
+    }
     return report.getId();
   }
 
@@ -39,10 +45,16 @@ public class ReportCommandServiceImpl implements ReportCommandService {
     if (!this.reportRepository.existsById(command.reportId())) {
       throw new IllegalArgumentException("Report with id " + command.reportId() + " does not exist");
     }
+
     var reportToUpdate = this.reportRepository.findById(command.reportId()).get();
     reportToUpdate.updateInformation(command.reason(), command.status(), command.closed());
-    var updatedReport = this.reportRepository.save(reportToUpdate);
-    return Optional.of(updatedReport);
+
+    try {
+      var updatedReport = this.reportRepository.save(reportToUpdate);
+      return Optional.of(updatedReport);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error while updating report: " + e.getMessage());
+    }
   }
 
   @Override
@@ -50,10 +62,16 @@ public class ReportCommandServiceImpl implements ReportCommandService {
     if (!this.reportRepository.existsById(command.reportId())) {
       throw new IllegalArgumentException("Report with id " + command.reportId() + " does not exist");
     }
+
     var report = this.reportRepository.findById(command.reportId()).get();
     report.close();
-    var closedReport = this.reportRepository.save(report);
-    return Optional.of(closedReport);
+
+    try {
+      var closedReport = this.reportRepository.save(report);
+      return Optional.of(closedReport);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error while closing report: " + e.getMessage());
+    }
   }
 
   @Override
@@ -61,6 +79,11 @@ public class ReportCommandServiceImpl implements ReportCommandService {
     if (!this.reportRepository.existsById(command.reportId())) {
       throw new IllegalArgumentException("Report with id " + command.reportId() + " does not exist");
     }
-    this.reportRepository.deleteById(command.reportId());
+
+    try {
+      this.reportRepository.deleteById(command.reportId());
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error while deleting report: " + e.getMessage());
+    }
   }
 }

@@ -44,6 +44,6 @@ public class ReportQueryServiceImpl implements ReportQueryService {
 
   @Override
   public List<Report> handle(GetReportsByReportedUserQuery query) {
-    return this.reportRepository.findByReportedUserId(query.reportedUserId());
+    return this.reportRepository.findByReportedUserId_Value(query.reportedUserId());
   }
 }

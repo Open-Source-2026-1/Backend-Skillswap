@@ -38,6 +38,6 @@ public class SanctionQueryServiceImpl implements SanctionQueryService {
 
   @Override
   public List<Sanction> handle(GetSanctionsByUserQuery query) {
-    return this.sanctionRepository.findBySanctionedUserId(query.sanctionedUserId());
+    return this.sanctionRepository.findBySanctionedUserId_Value(query.sanctionedUserId());
   }
 }

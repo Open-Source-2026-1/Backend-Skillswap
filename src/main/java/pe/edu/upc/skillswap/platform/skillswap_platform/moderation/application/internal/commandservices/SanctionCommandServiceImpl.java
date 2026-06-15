@@ -1,4 +1,4 @@
-﻿package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.application.internal.commandservices;
+package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.application.internal.commandservices;
 
 import org.springframework.stereotype.Service;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.aggregates.Sanction;
@@ -27,11 +27,17 @@ public class SanctionCommandServiceImpl implements SanctionCommandService {
     if (!this.reportRepository.existsById(command.reportId())) {
       throw new IllegalArgumentException("Report with id " + command.reportId() + " does not exist");
     }
+
     if (command.durationDays() < 0) {
       throw new IllegalArgumentException("Duration days cannot be negative");
     }
+
     var sanction = new Sanction(command);
-    this.sanctionRepository.save(sanction);
+    try {
+      this.sanctionRepository.save(sanction);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error while saving sanction: " + e.getMessage());
+    }
     return sanction.getId();
   }
 
@@ -40,13 +46,20 @@ public class SanctionCommandServiceImpl implements SanctionCommandService {
     if (!this.sanctionRepository.existsById(command.sanctionId())) {
       throw new IllegalArgumentException("Sanction with id " + command.sanctionId() + " does not exist");
     }
+
     if (command.durationDays() < 0) {
       throw new IllegalArgumentException("Duration days cannot be negative");
     }
+
     var sanctionToUpdate = this.sanctionRepository.findById(command.sanctionId()).get();
     sanctionToUpdate.updateInformation(command.type(), command.description(), command.durationDays());
-    var updatedSanction = this.sanctionRepository.save(sanctionToUpdate);
-    return Optional.of(updatedSanction);
+
+    try {
+      var updatedSanction = this.sanctionRepository.save(sanctionToUpdate);
+      return Optional.of(updatedSanction);
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error while updating sanction: " + e.getMessage());
+    }
   }
 
   @Override
@@ -54,6 +67,11 @@ public class SanctionCommandServiceImpl implements SanctionCommandService {
     if (!this.sanctionRepository.existsById(command.sanctionId())) {
       throw new IllegalArgumentException("Sanction with id " + command.sanctionId() + " does not exist");
     }
-    this.sanctionRepository.deleteById(command.sanctionId());
+
+    try {
+      this.sanctionRepository.deleteById(command.sanctionId());
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Error while deleting sanction: " + e.getMessage());
+    }
   }
 }
