@@ -4,35 +4,39 @@ import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
-import org.springframework.beans.factory.annotation.Value;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.List;
 
 @Configuration
 public class OpenApiConfiguration {
 
-  @Value("${spring.application.name}")
-  String applicationName;
+    @Bean
+    public OpenAPI skillSwapPlatformOpenApi() {
+        var openApi = new OpenAPI();
+        openApi
+                .info(new Info()
+                        .title("SkillSwap Platform API")
+                        .description("SkillSwap Platform application REST API documentation.")
+                        .version("v1.0.0")
+                        .license(new License()
+                                .name("Apache 2.0")
+                                .url("https://www.apache.org/licenses/LICENSE-2.0.html")))
+                .externalDocs(new ExternalDocumentation()
+                        .description("SkillSwap Platform Documentation")
+                        .url("https://github.com/1asi0729-11990/skillswap"));
 
-  @Value("${documentation.application.description}")
-  String applicationDescription;
+        openApi.servers(List.of(
+                new Server()
+                        .url("https://backend-skillswap-production-746f.up.railway.app")
+                        .description("Production Environment - Railway"),
+                new Server()
+                        .url("http://localhost:8097")
+                        .description("Local Development Environment")
+        ));
 
-  @Value("${documentation.application.version}")
-  String applicationVersion;
-
-  @Bean
-  public OpenAPI skillswapPlatformOpenApi() {
-    var openApi = new OpenAPI();
-    openApi
-        .info(new Info()
-            .title(this.applicationName)
-            .description(this.applicationDescription)
-            .version(this.applicationVersion)
-            .license(new License().name("Apache 2.0")
-                .url("https://springdoc.org")))
-        .externalDocs(new ExternalDocumentation()
-            .description("SkillSwap Platform Documentation")
-            .url("https://github.com/upc-is-si729/daos-language-reference"));
-    return openApi;
-  }
+        return openApi;
+    }
 }
