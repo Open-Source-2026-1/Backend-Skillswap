@@ -3,58 +3,73 @@ package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.valueobjects.ReportStatus;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.commands.CreateReportCommand;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.valueobjects.ReportedUserId;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.valueobjects.ReporterId;
 import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+
+import java.util.Date;
 
 @Getter
 @Entity
 @Table(name = "reports")
 public class Report extends AbstractDomainAggregateRoot<Report> {
 
-    @Setter
-    @Column(name = "reporter_id", nullable = false)
-    private Long reporterId;
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "reporter_user_id", nullable = false))
+    })
+    private ReporterId reporterUserId;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "reported_user_id", nullable = false))
+    })
+    private ReportedUserId reportedUserId;
 
     @Setter
-    @Column(name = "reporter_name", nullable = false)
-    private String reporterName;
-
-    @Setter
-    @Column(name = "reported_user_id", nullable = false)
-    private Long reportedUserId;
-
-    @Setter
-    @Column(nullable = false)
+    @Column(name = "reason", length = 500, nullable = false)
     private String reason;
 
     @Setter
-    @Column(columnDefinition = "TEXT")
-    private String description;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ReportStatus status;
+    @Column(name = "status", length = 50, nullable = false)
+    private String status;
 
     @Setter
-    @Column(name = "session_id")
-    private Long sessionId;
+    @Column(name = "closed", nullable = false)
+    private boolean closed;
+
+    @Column(name = "reported_at", nullable = false, updatable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date reportedAt;
 
     public Report() {
-        this.status = ReportStatus.PENDING;
     }
 
-    public Report(Long reporterId, String reporterName, Long reportedUserId,
-                  String reason, String description, Long sessionId) {
+    public Report(CreateReportCommand command) {
         this();
-        this.reporterId = reporterId;
-        this.reporterName = reporterName;
-        this.reportedUserId = reportedUserId;
-        this.reason = reason;
-        this.description = description;
-        this.sessionId = sessionId;
+        this.reporterUserId = new ReporterId(command.reporterUserId());
+        this.reportedUserId = new ReportedUserId(command.reportedUserId());
+        this.reason = command.reason();
+        this.status = (command.status() != null && !command.status().isBlank()) ? command.status() : "pending";
+        this.closed = false;
+        this.reportedAt = new Date();
     }
 
-    public void updateStatus(ReportStatus status) {
+    public Report updateInformation(String reason, String status, boolean closed) {
+        this.reason = reason;
         this.status = status;
+        this.closed = closed;
+        return this;
+    }
+
+    public Report close() {
+        this.closed = true;
+        this.status = "resolved";
+        return this;
+    }
+
+    public boolean isPending() {
+        return "pending".equalsIgnoreCase(this.status);
     }
 }

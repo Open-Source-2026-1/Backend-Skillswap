@@ -1,13 +1,17 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.services;
 
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.aggregates.Sanction;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.*;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetAllSanctionsQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetSanctionByIdQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetSanctionsByReportIdQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetSanctionsByUserQuery;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface SanctionQueryService {
-    List<Sanction> handle(GetAllSanctionsQuery query);
-    Optional<Sanction> handle(GetSanctionByIdQuery query);
-    List<Sanction> handle(GetSanctionsByUserIdQuery query);
+  List<Sanction> handle(GetAllSanctionsQuery query);
+  Optional<Sanction> handle(GetSanctionByIdQuery query);
+  List<Sanction> handle(GetSanctionsByReportIdQuery query);
+  List<Sanction> handle(GetSanctionsByUserQuery query);
 }

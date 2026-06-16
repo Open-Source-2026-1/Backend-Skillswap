@@ -2,41 +2,30 @@ package pe.edu.upc.skillswap.platform.skillswap_platform.reputation.application.
 
 import org.springframework.stereotype.Service;
 import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.model.aggregates.Review;
-import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.model.queries.*;
-import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.model.valueobjects.RevieweeId;
-import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.model.valueobjects.ReviewerId;
+import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.model.queries.GetReviewsByTutorIdQuery;
 import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.services.ReviewQueryService;
+import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.infrastructure.persistence.jpa.entities.ReviewJpaEntity;
 import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.infrastructure.persistence.jpa.repositories.ReviewJpaRepository;
+import pe.edu.upc.skillswap.platform.skillswap_platform.shared.application.result.ApplicationError;
+import pe.edu.upc.skillswap.platform.skillswap_platform.shared.application.result.Result;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class ReviewQueryServiceImpl implements ReviewQueryService {
 
-    private final ReviewJpaRepository reviewJpaRepository;
+    private final ReviewJpaRepository reviewRepository;
 
-    public ReviewQueryServiceImpl(ReviewJpaRepository reviewJpaRepository) {
-        this.reviewJpaRepository = reviewJpaRepository;
+    public ReviewQueryServiceImpl(ReviewJpaRepository reviewRepository) {
+        this.reviewRepository = reviewRepository;
     }
 
     @Override
-    public List<Review> handle(GetAllReviewsQuery query) {
-        return reviewJpaRepository.findAll();
-    }
-
-    @Override
-    public Optional<Review> handle(GetReviewByIdQuery query) {
-        return reviewJpaRepository.findById(query.reviewId());
-    }
-
-    @Override
-    public List<Review> handle(GetReviewsByTutorIdQuery query) {
-        return reviewJpaRepository.findByTutorId(new RevieweeId(query.tutorId()));
-    }
-
-    @Override
-    public List<Review> handle(GetReviewsByLearnerIdQuery query) {
-        return reviewJpaRepository.findByLearnerId(new ReviewerId(query.learnerId()));
+    public Result<List<Review>, ApplicationError> handle(GetReviewsByTutorIdQuery query) {
+        var reviews = reviewRepository.findByTutorId(query.tutorId()).stream()
+                .map(ReviewJpaEntity::toDomain)
+                .collect(Collectors.toList());
+        return Result.success(reviews);
     }
 }

@@ -1,14 +1,19 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.services;
 
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.aggregates.Report;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.*;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetActiveReportsQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetAllReportsQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetReportByIdQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetReportsByReportedUserQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetResolvedReportsQuery;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface ReportQueryService {
-    List<Report> handle(GetAllReportsQuery query);
-    Optional<Report> handle(GetReportByIdQuery query);
-    List<Report> handle(GetReportsByReporterIdQuery query);
-    List<Report> handle(GetReportsByStatusQuery query);
+  List<Report> handle(GetAllReportsQuery query);
+  Optional<Report> handle(GetReportByIdQuery query);
+  List<Report> handle(GetActiveReportsQuery query);
+  List<Report> handle(GetResolvedReportsQuery query);
+  List<Report> handle(GetReportsByReportedUserQuery query);
 }

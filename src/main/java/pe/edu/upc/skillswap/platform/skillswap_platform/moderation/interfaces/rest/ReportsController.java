@@ -5,95 +5,133 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.commands.CloseReportCommand;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.commands.DeleteReportCommand;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.*;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.valueobjects.ReportStatus;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetActiveReportsQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetAllReportsQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetReportByIdQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetReportsByReportedUserQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetResolvedReportsQuery;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.services.ReportCommandService;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.services.ReportQueryService;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.rest.resources.*;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.rest.transform.*;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.commands.UpdateReportStatusCommand;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.rest.resources.CreateReportResource;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.rest.resources.ReportResource;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.rest.resources.UpdateReportResource;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.rest.transform.CreateReportCommandFromResourceAssembler;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.rest.transform.ReportResourceFromEntityAssembler;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.rest.transform.UpdateReportCommandFromResourceAssembler;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "*", methods = {RequestMethod.POST, RequestMethod.GET, RequestMethod.PUT, RequestMethod.DELETE})
+@CrossOrigin(origins = "*", methods = { RequestMethod.POST, RequestMethod.GET, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.PATCH })
 @RestController
 @RequestMapping(value = "/api/v1/reports", produces = MediaType.APPLICATION_JSON_VALUE)
-@Tag(name = "Reports", description = "Reports Management Endpoints")
+@Tag(name = "Reports", description = "Report Management Endpoints")
 public class ReportsController {
 
-    private final ReportCommandService reportCommandService;
-    private final ReportQueryService reportQueryService;
+  private final ReportQueryService reportQueryService;
+  private final ReportCommandService reportCommandService;
 
-    public ReportsController(ReportCommandService reportCommandService,
-                             ReportQueryService reportQueryService) {
-        this.reportCommandService = reportCommandService;
-        this.reportQueryService = reportQueryService;
+  public ReportsController(ReportQueryService reportQueryService, ReportCommandService reportCommandService) {
+    this.reportQueryService = reportQueryService;
+    this.reportCommandService = reportCommandService;
+  }
+
+  @PostMapping
+  public ResponseEntity<ReportResource> createReport(@RequestBody CreateReportResource resource) {
+
+    var createReportCommand = CreateReportCommandFromResourceAssembler
+        .toCommandFromResource(resource);
+    var reportId = this.reportCommandService.handle(createReportCommand);
+
+    if (reportId.equals(0L)) {
+      return ResponseEntity.badRequest().build();
     }
 
-    @PostMapping
-    public ResponseEntity<ReportResource> createReport(@RequestBody CreateReportResource resource) {
-        var command = CreateReportCommandFromResourceAssembler.toCommandFromResource(resource);
-        var report = reportCommandService.handle(command);
-        if (report.isEmpty()) return ResponseEntity.badRequest().build();
-        var reportResource = ReportResourceFromEntityAssembler.toResourceFromEntity(report.get());
-        return new ResponseEntity<>(reportResource, HttpStatus.CREATED);
-    }
+    var getReportByIdQuery = new GetReportByIdQuery(reportId);
+    var optionalReport = this.reportQueryService.handle(getReportByIdQuery);
 
-    @GetMapping
-    public ResponseEntity<List<ReportResource>> getAllReports() {
-        var query = new GetAllReportsQuery();
-        var reports = reportQueryService.handle(query);
-        var resources = reports.stream()
-                .map(ReportResourceFromEntityAssembler::toResourceFromEntity)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(resources);
-    }
+    var reportResource = ReportResourceFromEntityAssembler.toResourceFromEntity(optionalReport.get());
+    return new ResponseEntity<>(reportResource, HttpStatus.CREATED);
+  }
 
-    @GetMapping("/{reportId}")
-    public ResponseEntity<ReportResource> getReportById(@PathVariable Long reportId) {
-        var query = new GetReportByIdQuery(reportId);
-        var report = reportQueryService.handle(query);
-        if (report.isEmpty()) return ResponseEntity.notFound().build();
-        var resource = ReportResourceFromEntityAssembler.toResourceFromEntity(report.get());
-        return ResponseEntity.ok(resource);
-    }
+  @GetMapping
+  public ResponseEntity<List<ReportResource>> getAllReports() {
+    var getAllReportsQuery = new GetAllReportsQuery();
+    var reports = this.reportQueryService.handle(getAllReportsQuery);
+    var reportResources = reports.stream()
+        .map(ReportResourceFromEntityAssembler::toResourceFromEntity)
+        .collect(Collectors.toList());
+    return ResponseEntity.ok(reportResources);
+  }
 
-    @GetMapping("/reporter/{reporterId}")
-    public ResponseEntity<List<ReportResource>> getReportsByReporterId(@PathVariable Long reporterId) {
-        var query = new GetReportsByReporterIdQuery(reporterId);
-        var reports = reportQueryService.handle(query);
-        var resources = reports.stream()
-                .map(ReportResourceFromEntityAssembler::toResourceFromEntity)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(resources);
-    }
+  @GetMapping("/{reportId}")
+  public ResponseEntity<ReportResource> getReportById(@PathVariable Long reportId) {
+    var getReportByIdQuery = new GetReportByIdQuery(reportId);
+    var optionalReport = this.reportQueryService.handle(getReportByIdQuery);
+    if (optionalReport.isEmpty())
+      return ResponseEntity.badRequest().build();
+    var reportResource = ReportResourceFromEntityAssembler.toResourceFromEntity(optionalReport.get());
+    return ResponseEntity.ok(reportResource);
+  }
 
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<ReportResource>> getReportsByStatus(@PathVariable ReportStatus status) {
-        var query = new GetReportsByStatusQuery(status);
-        var reports = reportQueryService.handle(query);
-        var resources = reports.stream()
-                .map(ReportResourceFromEntityAssembler::toResourceFromEntity)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(resources);
-    }
+  @GetMapping("/active")
+  public ResponseEntity<List<ReportResource>> getActiveReports() {
+    var getActiveReportsQuery = new GetActiveReportsQuery();
+    var reports = this.reportQueryService.handle(getActiveReportsQuery);
+    var reportResources = reports.stream()
+        .map(ReportResourceFromEntityAssembler::toResourceFromEntity)
+        .collect(Collectors.toList());
+    return ResponseEntity.ok(reportResources);
+  }
 
-    @PutMapping("/{reportId}/status")
-    public ResponseEntity<ReportResource> updateReportStatus(@PathVariable Long reportId,
-                                                             @RequestBody UpdateReportStatusResource resource) {
-        var command = new UpdateReportStatusCommand(reportId, resource.status());
-        var report = reportCommandService.handle(command);
-        if (report.isEmpty()) return ResponseEntity.notFound().build();
-        var reportResource = ReportResourceFromEntityAssembler.toResourceFromEntity(report.get());
-        return ResponseEntity.ok(reportResource);
-    }
+  @GetMapping("/resolved")
+  public ResponseEntity<List<ReportResource>> getResolvedReports() {
+    var getResolvedReportsQuery = new GetResolvedReportsQuery();
+    var reports = this.reportQueryService.handle(getResolvedReportsQuery);
+    var reportResources = reports.stream()
+        .map(ReportResourceFromEntityAssembler::toResourceFromEntity)
+        .collect(Collectors.toList());
+    return ResponseEntity.ok(reportResources);
+  }
 
-    @DeleteMapping("/{reportId}")
-    public ResponseEntity<?> deleteReport(@PathVariable Long reportId) {
-        var command = new DeleteReportCommand(reportId);
-        reportCommandService.handle(command);
-        return ResponseEntity.noContent().build();
-    }
+  @GetMapping("/by-reported-user/{reportedUserId}")
+  public ResponseEntity<List<ReportResource>> getReportsByReportedUser(@PathVariable Long reportedUserId) {
+    var getReportsByReportedUserQuery = new GetReportsByReportedUserQuery(reportedUserId);
+    var reports = this.reportQueryService.handle(getReportsByReportedUserQuery);
+    var reportResources = reports.stream()
+        .map(ReportResourceFromEntityAssembler::toResourceFromEntity)
+        .collect(Collectors.toList());
+    return ResponseEntity.ok(reportResources);
+  }
+
+  @PutMapping("/{reportId}")
+  public ResponseEntity<ReportResource> updateReport(@PathVariable Long reportId, @RequestBody UpdateReportResource resource) {
+    var updateReportCommand = UpdateReportCommandFromResourceAssembler.toCommandFromResource(reportId, resource);
+    var optionalReport = this.reportCommandService.handle(updateReportCommand);
+
+    if (optionalReport.isEmpty())
+      return ResponseEntity.badRequest().build();
+    var reportResource = ReportResourceFromEntityAssembler.toResourceFromEntity(optionalReport.get());
+    return ResponseEntity.ok(reportResource);
+  }
+
+  @PatchMapping("/{reportId}/close")
+  public ResponseEntity<ReportResource> closeReport(@PathVariable Long reportId) {
+    var closeReportCommand = new CloseReportCommand(reportId);
+    var optionalReport = this.reportCommandService.handle(closeReportCommand);
+
+    if (optionalReport.isEmpty())
+      return ResponseEntity.badRequest().build();
+    var reportResource = ReportResourceFromEntityAssembler.toResourceFromEntity(optionalReport.get());
+    return ResponseEntity.ok(reportResource);
+  }
+
+  @DeleteMapping("/{reportId}")
+  public ResponseEntity<?> deleteReport(@PathVariable Long reportId) {
+    var deleteReportCommand = new DeleteReportCommand(reportId);
+    this.reportCommandService.handle(deleteReportCommand);
+    return ResponseEntity.noContent().build();
+  }
 }

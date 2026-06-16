@@ -4,15 +4,9 @@ import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.rest.resources.ReportResource;
 
 public class ReportResourceFromEntityAssembler {
-    public static ReportResource toResourceFromEntity(Report entity) {
-        return new ReportResource(
-                entity.getId(),
-                entity.getReporterId(),
-                entity.getReporterName(),
-                entity.getReportedUserId(),
-                entity.getReason(),
-                entity.getDescription(),
-                entity.getStatus(),
-                entity.getSessionId());
-    }
+  public static ReportResource toResourceFromEntity(Report entity) {
+    return new ReportResource(entity.getId(), entity.getReporterUserId().value(), entity.getReportedUserId().value(),
+            entity.getReason(), entity.getStatus(), entity.isClosed(), entity.getReportedAt(),
+            entity.getCreatedAt(), entity.getUpdatedAt());
+  }
 }
