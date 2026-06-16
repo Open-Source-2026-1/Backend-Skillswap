@@ -1,55 +1,55 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.aggregates;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.Setter;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.commands.CreateReportCommand;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.valueobjects.ReportedUserId;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.valueobjects.ReporterId;
-import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 
 import java.util.Date;
 
-@Getter
 @Entity
 @Table(name = "reports")
-public class Report extends AbstractDomainAggregateRoot<Report> {
+public class Report extends AuditableAbstractAggregateRoot<Report> {
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "reporter_user_id", nullable = false))
-    })
-    private ReporterId reporterUserId;
+    @Getter
+    @NotNull
+    @Min(1)
+    @Column(name = "reporter_user_id", nullable = false)
+    private Long reporterUserId;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "reported_user_id", nullable = false))
-    })
-    private ReportedUserId reportedUserId;
+    @Getter
+    @NotNull
+    @Min(1)
+    @Column(name = "reported_user_id", nullable = false)
+    private Long reportedUserId;
 
-    @Setter
+    @Getter
+    @NotBlank
     @Column(name = "reason", length = 500, nullable = false)
     private String reason;
 
-    @Setter
+    @Getter
+    @NotBlank
     @Column(name = "status", length = 50, nullable = false)
     private String status;
 
-    @Setter
+    @Getter
     @Column(name = "closed", nullable = false)
     private boolean closed;
 
+    @Getter
     @Column(name = "reported_at", nullable = false, updatable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date reportedAt;
 
-    public Report() {
-    }
+    public Report() {}
 
     public Report(CreateReportCommand command) {
-        this();
-        this.reporterUserId = new ReporterId(command.reporterUserId());
-        this.reportedUserId = new ReportedUserId(command.reportedUserId());
+        this.reporterUserId = command.reporterUserId();
+        this.reportedUserId = command.reportedUserId();
         this.reason = command.reason();
         this.status = (command.status() != null && !command.status().isBlank()) ? command.status() : "pending";
         this.closed = false;

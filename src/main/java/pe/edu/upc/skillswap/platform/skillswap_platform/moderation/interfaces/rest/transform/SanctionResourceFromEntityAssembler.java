@@ -5,8 +5,14 @@ import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.re
 
 public class SanctionResourceFromEntityAssembler {
   public static SanctionResource toResourceFromEntity(Sanction entity) {
-    return new SanctionResource(entity.getId(), entity.getReportId(), entity.getSanctionedUserId().value(),
-            entity.getType(), entity.getDescription(), entity.getDurationDays(),
-            entity.getCreatedAt(), entity.getUpdatedAt());
+    return new SanctionResource(
+            entity.getId(),
+            entity.getReportId(),
+            entity.getSanctionedUserId(),
+            entity.getType(),
+            entity.getDescription(),
+            entity.getDurationDays(),
+            entity.getCreatedAt(),
+            entity.getUpdatedAt());
   }
 }

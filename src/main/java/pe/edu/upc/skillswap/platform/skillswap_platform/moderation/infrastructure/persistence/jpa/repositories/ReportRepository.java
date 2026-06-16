@@ -10,6 +10,6 @@ import java.util.List;
 public interface ReportRepository extends JpaRepository<Report, Long> {
   List<Report> findByClosedFalse();
   List<Report> findByClosedTrue();
-  List<Report> findByReportedUserId_Value(Long reportedUserId);
-  boolean existsByReporterUserId_ValueAndReportedUserId_ValueAndStatus(Long reporterUserId, Long reportedUserId, String status);
+  List<Report> findByReportedUserId(Long reportedUserId);
+  boolean existsByReporterUserIdAndReportedUserIdAndStatus(Long reporterUserId, Long reportedUserId, String status);
 }

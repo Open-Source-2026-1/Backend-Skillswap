@@ -5,6 +5,10 @@ import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.re
 
 public class UpdateReportCommandFromResourceAssembler {
   public static UpdateReportCommand toCommandFromResource(Long reportId, UpdateReportResource resource) {
-    return new UpdateReportCommand(reportId, resource.reason(), resource.status(), resource.closed());
+    return new UpdateReportCommand(
+            reportId,
+            resource.reason(),
+            resource.status(),
+            resource.closed());
   }
 }

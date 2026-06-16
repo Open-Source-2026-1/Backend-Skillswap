@@ -1,11 +1,8 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.services;
 
-import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.commands.*;
-import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.entities.Message;
-
-import java.util.Optional;
+import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.aggregates.Message;
+import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.commands.CreateMessageCommand;
 
 public interface MessageCommandService {
-    Optional<Message> handle(CreateMessageCommand command);
-    void handle(DeleteMessageCommand command);
+    Long handle(CreateMessageCommand command);
 }

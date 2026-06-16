@@ -2,11 +2,7 @@ package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.application.
 
 import org.springframework.stereotype.Service;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.aggregates.Report;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetActiveReportsQuery;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetAllReportsQuery;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetReportByIdQuery;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetReportsByReportedUserQuery;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetResolvedReportsQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.*;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.services.ReportQueryService;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.infrastructure.persistence.jpa.repositories.ReportRepository;
 
@@ -44,6 +40,6 @@ public class ReportQueryServiceImpl implements ReportQueryService {
 
   @Override
   public List<Report> handle(GetReportsByReportedUserQuery query) {
-    return this.reportRepository.findByReportedUserId_Value(query.reportedUserId());
+    return this.reportRepository.findByReportedUserId(query.reportedUserId());
   }
 }

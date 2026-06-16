@@ -9,5 +9,5 @@ import java.util.List;
 @Repository
 public interface SanctionRepository extends JpaRepository<Sanction, Long> {
   List<Sanction> findByReportId(Long reportId);
-  List<Sanction> findBySanctionedUserId_Value(Long sanctionedUserId);
+  List<Sanction> findBySanctionedUserId(Long sanctionedUserId);
 }

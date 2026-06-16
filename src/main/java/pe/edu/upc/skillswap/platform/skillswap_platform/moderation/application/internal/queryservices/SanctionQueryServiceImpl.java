@@ -2,10 +2,7 @@ package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.application.
 
 import org.springframework.stereotype.Service;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.aggregates.Sanction;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetAllSanctionsQuery;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetSanctionByIdQuery;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetSanctionsByReportIdQuery;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetSanctionsByUserQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.*;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.services.SanctionQueryService;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.infrastructure.persistence.jpa.repositories.SanctionRepository;
 
@@ -38,6 +35,6 @@ public class SanctionQueryServiceImpl implements SanctionQueryService {
 
   @Override
   public List<Sanction> handle(GetSanctionsByUserQuery query) {
-    return this.sanctionRepository.findBySanctionedUserId_Value(query.sanctionedUserId());
+    return this.sanctionRepository.findBySanctionedUserId(query.sanctionedUserId());
   }
 }

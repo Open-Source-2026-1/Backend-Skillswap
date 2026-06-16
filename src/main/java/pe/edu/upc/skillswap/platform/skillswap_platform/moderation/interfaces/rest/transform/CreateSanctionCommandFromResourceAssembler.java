@@ -5,6 +5,11 @@ import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.re
 
 public class CreateSanctionCommandFromResourceAssembler {
   public static CreateSanctionCommand toCommandFromResource(CreateSanctionResource resource) {
-    return new CreateSanctionCommand(resource.reportId(), resource.sanctionedUserId(), resource.type(), resource.description(), resource.durationDays());
+    return new CreateSanctionCommand(
+            resource.reportId(),
+            resource.sanctionedUserId(),
+            resource.type(),
+            resource.description(),
+            resource.durationDays());
   }
 }

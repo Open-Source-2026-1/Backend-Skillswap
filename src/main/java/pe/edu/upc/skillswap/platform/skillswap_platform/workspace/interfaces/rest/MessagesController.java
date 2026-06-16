@@ -5,19 +5,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.commands.DeleteMessageCommand;
-import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.queries.GetAllMessagesBySessionIdQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.queries.*;
 import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.services.MessageCommandService;
 import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.services.MessageQueryService;
-import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.interfaces.rest.resources.CreateMessageResource;
-import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.interfaces.rest.resources.MessageResource;
-import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.interfaces.rest.transform.CreateMessageCommandFromResourceAssembler;
-import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.interfaces.rest.transform.MessageResourceFromEntityAssembler;
+import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.interfaces.rest.resources.*;
+import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.interfaces.rest.transform.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "*", methods = {RequestMethod.POST, RequestMethod.GET, RequestMethod.DELETE})
+@CrossOrigin(origins = "*", methods = {RequestMethod.POST, RequestMethod.GET})
 @RestController
 @RequestMapping(value = "/api/v1/messages", produces = MediaType.APPLICATION_JSON_VALUE)
 @Tag(name = "Messages", description = "Messages Management Endpoints")
@@ -35,7 +32,9 @@ public class MessagesController {
     @PostMapping
     public ResponseEntity<MessageResource> createMessage(@RequestBody CreateMessageResource resource) {
         var command = CreateMessageCommandFromResourceAssembler.toCommandFromResource(resource);
-        var message = messageCommandService.handle(command);
+        var messageId = this.messageCommandService.handle(command);
+        if (messageId.equals(0L)) return ResponseEntity.badRequest().build();
+        var message = this.messageQueryService.handle(new GetMessageByIdQuery(messageId));
         if (message.isEmpty()) return ResponseEntity.badRequest().build();
         var messageResource = MessageResourceFromEntityAssembler.toResourceFromEntity(message.get());
         return new ResponseEntity<>(messageResource, HttpStatus.CREATED);
@@ -43,18 +42,18 @@ public class MessagesController {
 
     @GetMapping("/session/{sessionId}")
     public ResponseEntity<List<MessageResource>> getMessagesBySessionId(@PathVariable Long sessionId) {
-        var query = new GetAllMessagesBySessionIdQuery(sessionId);
-        var messages = messageQueryService.handle(query);
+        var messages = this.messageQueryService.handle(new GetAllMessagesBySessionIdQuery(sessionId));
         var resources = messages.stream()
                 .map(MessageResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(resources);
     }
 
-    @DeleteMapping("/{messageId}")
-    public ResponseEntity<?> deleteMessage(@PathVariable Long messageId) {
-        var command = new DeleteMessageCommand(messageId);
-        messageCommandService.handle(command);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/{messageId}")
+    public ResponseEntity<MessageResource> getMessageById(@PathVariable Long messageId) {
+        var message = this.messageQueryService.handle(new GetMessageByIdQuery(messageId));
+        if (message.isEmpty()) return ResponseEntity.notFound().build();
+        var resource = MessageResourceFromEntityAssembler.toResourceFromEntity(message.get());
+        return ResponseEntity.ok(resource);
     }
 }

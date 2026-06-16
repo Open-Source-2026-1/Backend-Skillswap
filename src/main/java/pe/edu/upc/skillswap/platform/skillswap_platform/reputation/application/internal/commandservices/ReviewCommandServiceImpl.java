@@ -2,47 +2,50 @@ package pe.edu.upc.skillswap.platform.skillswap_platform.reputation.application.
 
 import org.springframework.stereotype.Service;
 import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.model.aggregates.Review;
-import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.model.commands.CreateReviewCommand;
+import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.model.commands.*;
 import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.services.ReviewCommandService;
-import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.infrastructure.persistence.jpa.entities.ReviewJpaEntity;
-import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.infrastructure.persistence.jpa.repositories.ReviewJpaRepository;
-import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.infrastructure.persistence.jpa.repositories.TutorJpaRepository;
-import pe.edu.upc.skillswap.platform.skillswap_platform.shared.application.result.ApplicationError;
-import pe.edu.upc.skillswap.platform.skillswap_platform.shared.application.result.Result;
+import pe.edu.upc.skillswap.platform.skillswap_platform.reputation.infrastructure.persistence.jpa.repositories.ReviewRepository;
+
+import java.util.Optional;
 
 @Service
 public class ReviewCommandServiceImpl implements ReviewCommandService {
 
-    private final ReviewJpaRepository reviewRepository;
-    private final TutorJpaRepository tutorRepository;
+    private final ReviewRepository reviewRepository;
 
-    public ReviewCommandServiceImpl(ReviewJpaRepository reviewRepository, TutorJpaRepository tutorRepository) {
+    public ReviewCommandServiceImpl(ReviewRepository reviewRepository) {
         this.reviewRepository = reviewRepository;
-        this.tutorRepository = tutorRepository;
     }
 
     @Override
-    public Result<Long, ApplicationError> handle(CreateReviewCommand command) {
-        var tutorOptional = tutorRepository.findById(command.tutorId());
-        if (tutorOptional.isEmpty()) {
-            return Result.failure(ApplicationError.notFound("Tutor", command.tutorId().toString()));
+    public Long handle(CreateReviewCommand command) {
+        if (command.tutorId().equals(command.learnerId())) {
+            throw new IllegalArgumentException("Tutor and learner cannot be the same person");
         }
-
-        if (reviewRepository.existsByTutorIdAndStudentIdAndSessionId(command.tutorId(), command.studentId(), command.sessionId())) {
-            return Result.failure(ApplicationError.conflict("Review", "This student already reviewed this session"));
+        if (command.rating() < 1 || command.rating() > 5) {
+            throw new IllegalArgumentException("Rating must be between 1 and 5");
         }
+        var review = new Review(command);
+        this.reviewRepository.save(review);
+        return review.getId();
+    }
 
-        var reviewDomain = new Review(command.tutorId(), command.studentId(), command.sessionId(), command.scoreValue(), command.comment());
-        var reviewEntity = ReviewJpaEntity.fromDomain(reviewDomain);
-        var savedReview = reviewRepository.save(reviewEntity);
+    @Override
+    public Optional<Review> handle(UpdateReviewCommand command) {
+        if (!this.reviewRepository.existsById(command.reviewId())) {
+            throw new IllegalArgumentException("Review with id " + command.reviewId() + " does not exist");
+        }
+        var reviewToUpdate = this.reviewRepository.findById(command.reviewId()).get();
+        reviewToUpdate.updateInformation(command.rating(), command.comment(), command.tutorReply());
+        var updatedReview = this.reviewRepository.save(reviewToUpdate);
+        return Optional.of(updatedReview);
+    }
 
-        var tutorEntity = tutorOptional.get();
-        tutorEntity.setTotalReviews(tutorEntity.getTotalReviews() + 1);
-        double newAverage = ((tutorEntity.getAverageScore() * (tutorEntity.getTotalReviews() - 1)) + command.scoreValue()) / tutorEntity.getTotalReviews();
-        tutorEntity.setAverageScore(Math.round(newAverage * 10.0) / 10.0);
-
-        tutorRepository.save(tutorEntity);
-
-        return Result.success(savedReview.getId());
+    @Override
+    public void handle(DeleteReviewCommand command) {
+        if (!this.reviewRepository.existsById(command.reviewId())) {
+            throw new IllegalArgumentException("Review with id " + command.reviewId() + " does not exist");
+        }
+        this.reviewRepository.deleteById(command.reviewId());
     }
 }

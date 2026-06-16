@@ -1,11 +1,8 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.reputation.domain.model.commands;
 
-public record CreateReviewCommand(
-        Long tutorId,
-        Long learnerId,
-        String learnerName,
+public record UpdateReviewCommand(
+        Long reviewId,
         Float rating,
         String comment,
-        Long sessionId,
         String tutorReply) {
 }

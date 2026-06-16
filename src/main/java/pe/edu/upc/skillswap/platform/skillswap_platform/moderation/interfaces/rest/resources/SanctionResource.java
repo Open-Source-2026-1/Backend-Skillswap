@@ -2,6 +2,13 @@ package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.interfaces.r
 
 import java.util.Date;
 
-public record SanctionResource(Long id, Long reportId, Long sanctionedUserId, String type,
-                                String description, int durationDays, Date createdAt, Date updatedAt) {
+public record SanctionResource(
+        Long id,
+        Long reportId,
+        Long sanctionedUserId,
+        String type,
+        String description,
+        int durationDays,
+        Date createdAt,
+        Date updatedAt) {
 }
