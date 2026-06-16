@@ -11,4 +11,5 @@ public interface DonationQueryService {
     Optional<Donation> handle(GetDonationByIdQuery query);
     List<Donation> handle(GetDonationsByDonorIdQuery query);
     List<Donation> handle(GetDonationsByTutorIdQuery query);
+    List<Donation> handle(GetDonationsByStatusQuery query);
 }

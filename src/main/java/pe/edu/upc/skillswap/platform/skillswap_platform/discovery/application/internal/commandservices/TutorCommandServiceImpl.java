@@ -4,57 +4,45 @@ import org.springframework.stereotype.Service;
 import pe.edu.upc.skillswap.platform.skillswap_platform.discovery.domain.model.aggregates.Tutor;
 import pe.edu.upc.skillswap.platform.skillswap_platform.discovery.domain.model.commands.*;
 import pe.edu.upc.skillswap.platform.skillswap_platform.discovery.domain.services.TutorCommandService;
-import pe.edu.upc.skillswap.platform.skillswap_platform.discovery.infrastructure.persistence.jpa.repositories.TutorJpaRepository;
+import pe.edu.upc.skillswap.platform.skillswap_platform.discovery.infrastructure.persistence.jpa.repositories.TutorRepository;
 
 import java.util.Optional;
 
 @Service
 public class TutorCommandServiceImpl implements TutorCommandService {
 
-    private final TutorJpaRepository tutorJpaRepository;
+    private final TutorRepository tutorRepository;
 
-    public TutorCommandServiceImpl(TutorJpaRepository tutorJpaRepository) {
-        this.tutorJpaRepository = tutorJpaRepository;
+    public TutorCommandServiceImpl(TutorRepository tutorRepository) {
+        this.tutorRepository = tutorRepository;
     }
 
     @Override
-    public Optional<Tutor> handle(CreateTutorCommand command) {
-        var tutor = new Tutor(
-                command.name(),
-                command.university(),
-                command.bio(),
-                command.rating(),
-                command.skills(),
-                command.available(),
-                command.avatarUrl(),
-                command.specialty(),
-                command.portfolioUrl(),
-                command.yearsExperience());
-        var savedTutor = tutorJpaRepository.save(tutor);
-        return Optional.of(savedTutor);
+    public Long handle(CreateTutorCommand command) {
+        if (this.tutorRepository.existsByNameAndUniversity(command.name(), command.university())) {
+            throw new IllegalArgumentException("A tutor with the same name and university already exists");
+        }
+        var tutor = new Tutor(command);
+        this.tutorRepository.save(tutor);
+        return tutor.getId();
     }
 
     @Override
     public Optional<Tutor> handle(UpdateTutorCommand command) {
-        var optionalTutor = tutorJpaRepository.findById(command.tutorId());
-        if (optionalTutor.isEmpty()) return Optional.empty();
-        var tutor = optionalTutor.get();
-        tutor.setName(command.name());
-        tutor.setUniversity(command.university());
-        tutor.setBio(command.bio());
-        tutor.setRating(command.rating());
-        tutor.setSkills(command.skills());
-        tutor.setAvailable(command.available());
-        tutor.setAvatarUrl(command.avatarUrl());
-        tutor.setSpecialty(command.specialty());
-        tutor.setPortfolioUrl(command.portfolioUrl());
-        tutor.setYearsExperience(command.yearsExperience());
-        var updatedTutor = tutorJpaRepository.save(tutor);
+        if (!this.tutorRepository.existsById(command.tutorId())) {
+            throw new IllegalArgumentException("Tutor with id " + command.tutorId() + " does not exist");
+        }
+        var tutorToUpdate = this.tutorRepository.findById(command.tutorId()).get();
+        tutorToUpdate.updateInformation(command);
+        var updatedTutor = this.tutorRepository.save(tutorToUpdate);
         return Optional.of(updatedTutor);
     }
 
     @Override
     public void handle(DeleteTutorCommand command) {
-        tutorJpaRepository.deleteById(command.tutorId());
+        if (!this.tutorRepository.existsById(command.tutorId())) {
+            throw new IllegalArgumentException("Tutor with id " + command.tutorId() + " does not exist");
+        }
+        this.tutorRepository.deleteById(command.tutorId());
     }
 }

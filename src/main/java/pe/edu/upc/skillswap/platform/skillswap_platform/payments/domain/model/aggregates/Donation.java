@@ -1,70 +1,80 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.aggregates;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.Setter;
-import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.valueobjects.Currency;
-import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.valueobjects.DonationStatus;
-import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.commands.CreateDonationCommand;
+import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 
-@Getter
 @Entity
 @Table(name = "donations")
-public class Donation extends AbstractDomainAggregateRoot<Donation> {
+public class Donation extends AuditableAbstractAggregateRoot<Donation> {
 
-    @Setter
+    @Getter
+    @NotNull
+    @Min(1)
     @Column(name = "donor_id", nullable = false)
     private Long donorId;
 
-    @Setter
+    @Getter
+    @NotNull
+    @Min(1)
     @Column(name = "tutor_id", nullable = false)
     private Long tutorId;
 
-    @Setter
+    @Getter
     @Column(name = "session_id")
     private Long sessionId;
 
-    @Setter
+    @Getter
+    @NotNull
+    @Min(0)
     @Column(nullable = false)
     private Double amount;
 
-    @Setter
+    @Getter
     @Column(name = "net_amount")
     private Double netAmount;
 
-    @Setter
+    @Getter
+    @Column(name = "commission")
     private Double commission;
 
-    @Enumerated(EnumType.STRING)
+    @Getter
+    @NotBlank
     @Column(nullable = false)
-    private Currency currency;
+    private String currency;
 
-    @Enumerated(EnumType.STRING)
+    @Getter
+    @NotBlank
     @Column(nullable = false)
-    private DonationStatus status;
+    private String status;
 
-    public Donation() {
-        this.status = DonationStatus.PENDING;
-        this.currency = Currency.PEN;
+    public Donation() {}
+
+    public Donation(CreateDonationCommand command) {
+        this.donorId = command.donorId();
+        this.tutorId = command.tutorId();
+        this.sessionId = command.sessionId();
+        this.amount = command.amount();
+        this.commission = command.commission();
+        this.netAmount = command.amount() - (command.amount() * command.commission() / 100);
+        this.currency = command.currency();
+        this.status = "pending";
     }
 
-    public Donation(Long donorId, Long tutorId, Long sessionId, Double amount,
-                    Double commission, Currency currency) {
-        this();
-        this.donorId = donorId;
-        this.tutorId = tutorId;
-        this.sessionId = sessionId;
-        this.amount = amount;
-        this.commission = commission;
-        this.netAmount = amount - (amount * commission / 100);
-        this.currency = currency;
+    public Donation updateStatus(String status) {
+        this.status = status;
+        return this;
     }
 
-    public void complete() {
-        this.status = DonationStatus.COMPLETED;
+    public boolean isPending() {
+        return "pending".equalsIgnoreCase(this.status);
     }
 
-    public void fail() {
-        this.status = DonationStatus.FAILED;
+    public boolean isCompleted() {
+        return "completed".equalsIgnoreCase(this.status);
     }
 }

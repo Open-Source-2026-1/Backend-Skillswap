@@ -16,6 +16,8 @@ public class TutorResourceFromEntityAssembler {
                 entity.getAvatarUrl(),
                 entity.getSpecialty(),
                 entity.getPortfolioUrl(),
-                entity.getYearsExperience());
+                entity.getYearsExperience(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt());
     }
 }

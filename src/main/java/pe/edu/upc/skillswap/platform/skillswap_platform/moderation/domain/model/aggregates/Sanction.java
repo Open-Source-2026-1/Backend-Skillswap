@@ -1,46 +1,48 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.aggregates;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.Setter;
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.commands.CreateSanctionCommand;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.valueobjects.SanctionedUserId;
-import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 
-@Getter
 @Entity
 @Table(name = "sanctions")
-public class Sanction extends AbstractDomainAggregateRoot<Sanction> {
+public class Sanction extends AuditableAbstractAggregateRoot<Sanction> {
 
-    @Setter
+    @Getter
+    @NotNull
+    @Min(1)
     @Column(name = "report_id", nullable = false)
     private Long reportId;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "sanctioned_user_id", nullable = false))
-    })
-    private SanctionedUserId sanctionedUserId;
+    @Getter
+    @NotNull
+    @Min(1)
+    @Column(name = "sanctioned_user_id", nullable = false)
+    private Long sanctionedUserId;
 
-    @Setter
+    @Getter
+    @NotBlank
     @Column(name = "type", length = 50, nullable = false)
     private String type;
 
-    @Setter
+    @Getter
+    @NotBlank
     @Column(name = "description", length = 1000, nullable = false)
     private String description;
 
-    @Setter
+    @Getter
     @Column(name = "duration_days", nullable = false)
     private int durationDays;
 
-    public Sanction() {
-    }
+    public Sanction() {}
 
     public Sanction(CreateSanctionCommand command) {
-        this();
         this.reportId = command.reportId();
-        this.sanctionedUserId = new SanctionedUserId(command.sanctionedUserId());
+        this.sanctionedUserId = command.sanctionedUserId();
         this.type = command.type();
         this.description = command.description();
         this.durationDays = command.durationDays();

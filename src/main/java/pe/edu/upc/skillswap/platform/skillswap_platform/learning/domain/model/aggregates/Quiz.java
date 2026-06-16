@@ -1,32 +1,40 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.learning.domain.model.aggregates;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
-import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+import pe.edu.upc.skillswap.platform.skillswap_platform.learning.domain.model.commands.CreateQuizCommand;
+import pe.edu.upc.skillswap.platform.skillswap_platform.learning.domain.model.commands.UpdateQuizCommand;
+import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 
 import java.util.List;
 
-@Getter
 @Entity
 @Table(name = "quizzes")
-public class Quiz extends AbstractDomainAggregateRoot<Quiz> {
+public class Quiz extends AuditableAbstractAggregateRoot<Quiz> {
 
-    @Setter
+    @Getter
+    @NotBlank
     @Column(nullable = false)
     private String title;
 
-    @Setter
+    @Getter
+    @Column(name = "course")
     private String course;
 
-    @Setter
-    @Column(name = "created_by")
+    @Getter
+    @NotNull
+    @Column(name = "created_by", nullable = false)
     private Long createdBy;
 
-    @Setter
-    @Column(name = "tutor_id")
+    @Getter
+    @NotNull
+    @Column(name = "tutor_id", nullable = false)
     private Long tutorId;
 
+    @Getter
     @Setter
     @ElementCollection
     @CollectionTable(name = "quiz_questions", joinColumns = @JoinColumn(name = "quiz_id"))
@@ -35,11 +43,18 @@ public class Quiz extends AbstractDomainAggregateRoot<Quiz> {
 
     public Quiz() {}
 
-    public Quiz(String title, String course, Long createdBy, Long tutorId, List<String> questions) {
-        this.title = title;
-        this.course = course;
-        this.createdBy = createdBy;
-        this.tutorId = tutorId;
-        this.questions = questions;
+    public Quiz(CreateQuizCommand command) {
+        this.title = command.title();
+        this.course = command.course();
+        this.createdBy = command.createdBy();
+        this.tutorId = command.tutorId();
+        this.questions = command.questions();
+    }
+
+    public Quiz updateInformation(UpdateQuizCommand command) {
+        this.title = command.title();
+        this.course = command.course();
+        this.questions = command.questions();
+        return this;
     }
 }

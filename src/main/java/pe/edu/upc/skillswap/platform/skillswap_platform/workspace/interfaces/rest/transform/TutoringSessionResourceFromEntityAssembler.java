@@ -7,10 +7,14 @@ public class TutoringSessionResourceFromEntityAssembler {
     public static TutoringSessionResource toResourceFromEntity(TutoringSession entity) {
         return new TutoringSessionResource(
                 entity.getId(),
+                entity.getLearnerId(),
+                entity.getTutorId(),
                 entity.getTopic(),
+                entity.getMessage(),
+                entity.getStudentLevel(),
                 entity.getStatus(),
-                entity.getLearnerId().value(),
-                entity.getTutorId().value(),
-                entity.getScheduledAt());
+                entity.getScheduledAt(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt());
     }
 }

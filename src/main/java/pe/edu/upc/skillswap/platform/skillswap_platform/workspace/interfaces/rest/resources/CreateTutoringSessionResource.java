@@ -3,10 +3,10 @@ package pe.edu.upc.skillswap.platform.skillswap_platform.workspace.interfaces.re
 import java.time.LocalDateTime;
 
 public record CreateTutoringSessionResource(
-        String topic,
         Long learnerId,
         Long tutorId,
-        LocalDateTime scheduledAt,
+        String topic,
         String message,
-        String studentLevel) {
+        String studentLevel,
+        LocalDateTime scheduledAt) {
 }

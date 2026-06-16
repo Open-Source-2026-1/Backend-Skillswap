@@ -4,47 +4,48 @@ import org.springframework.stereotype.Service;
 import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.aggregates.Wallet;
 import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.commands.*;
 import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.services.WalletCommandService;
-import pe.edu.upc.skillswap.platform.skillswap_platform.payments.infrastructure.persistence.jpa.repositories.WalletJpaRepository;
+import pe.edu.upc.skillswap.platform.skillswap_platform.payments.infrastructure.persistence.jpa.repositories.WalletRepository;
 
 import java.util.Optional;
 
 @Service
 public class WalletCommandServiceImpl implements WalletCommandService {
 
-    private final WalletJpaRepository walletJpaRepository;
+    private final WalletRepository walletRepository;
 
-    public WalletCommandServiceImpl(WalletJpaRepository walletJpaRepository) {
-        this.walletJpaRepository = walletJpaRepository;
+    public WalletCommandServiceImpl(WalletRepository walletRepository) {
+        this.walletRepository = walletRepository;
     }
 
     @Override
-    public Optional<Wallet> handle(CreateWalletCommand command) {
-        var wallet = new Wallet(
-                command.tutorId(),
-                command.currency(),
-                command.bankName(),
-                command.accountNumber());
-        var savedWallet = walletJpaRepository.save(wallet);
-        return Optional.of(savedWallet);
+    public Long handle(CreateWalletCommand command) {
+        if (this.walletRepository.existsByTutorId(command.tutorId())) {
+            throw new IllegalArgumentException("Wallet already exists for tutor with id " + command.tutorId());
+        }
+        var wallet = new Wallet(command);
+        this.walletRepository.save(wallet);
+        return wallet.getId();
     }
 
     @Override
     public Optional<Wallet> handle(AddFundsToWalletCommand command) {
-        var optionalWallet = walletJpaRepository.findById(command.walletId());
-        if (optionalWallet.isEmpty()) return Optional.empty();
-        var wallet = optionalWallet.get();
+        if (!this.walletRepository.existsById(command.walletId())) {
+            throw new IllegalArgumentException("Wallet with id " + command.walletId() + " does not exist");
+        }
+        var wallet = this.walletRepository.findById(command.walletId()).get();
         wallet.addFunds(command.amount());
-        var updatedWallet = walletJpaRepository.save(wallet);
+        var updatedWallet = this.walletRepository.save(wallet);
         return Optional.of(updatedWallet);
     }
 
     @Override
     public Optional<Wallet> handle(WithdrawFundsFromWalletCommand command) {
-        var optionalWallet = walletJpaRepository.findById(command.walletId());
-        if (optionalWallet.isEmpty()) return Optional.empty();
-        var wallet = optionalWallet.get();
+        if (!this.walletRepository.existsById(command.walletId())) {
+            throw new IllegalArgumentException("Wallet with id " + command.walletId() + " does not exist");
+        }
+        var wallet = this.walletRepository.findById(command.walletId()).get();
         wallet.withdrawFunds(command.amount());
-        var updatedWallet = walletJpaRepository.save(wallet);
+        var updatedWallet = this.walletRepository.save(wallet);
         return Optional.of(updatedWallet);
     }
 }

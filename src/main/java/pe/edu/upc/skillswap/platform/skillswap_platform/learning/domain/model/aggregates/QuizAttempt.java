@@ -1,50 +1,59 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.learning.domain.model.aggregates;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.Setter;
-import pe.edu.upc.skillswap.platform.skillswap_platform.learning.domain.model.valueobjects.AttemptStatus;
-import pe.edu.upc.skillswap.platform.skillswap_platform.learning.domain.model.valueobjects.QuizId;
-import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+import pe.edu.upc.skillswap.platform.skillswap_platform.learning.domain.model.commands.CreateQuizAttemptCommand;
+import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 
-@Getter
 @Entity
 @Table(name = "quiz_attempts")
-public class QuizAttempt extends AbstractDomainAggregateRoot<QuizAttempt> {
+public class QuizAttempt extends AuditableAbstractAggregateRoot<QuizAttempt> {
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "quiz_id", nullable = false))
-    })
-    private QuizId quizId;
+    @Getter
+    @NotNull
+    @Column(name = "quiz_id", nullable = false)
+    private Long quizId;
 
-    @Setter
+    @Getter
+    @NotNull
     @Column(name = "learner_id", nullable = false)
     private Long learnerId;
 
-    @Setter
+    @Getter
+    @Min(0)
+    @Max(10)
+    @Column(name = "score")
     private Float score;
 
-    @Enumerated(EnumType.STRING)
+    @Getter
+    @NotBlank
     @Column(nullable = false)
-    private AttemptStatus status;
+    private String status;
 
-    public QuizAttempt() {
-        this.status = AttemptStatus.IN_PROGRESS;
+    public QuizAttempt() {}
+
+    public QuizAttempt(CreateQuizAttemptCommand command) {
+        this.quizId = command.quizId();
+        this.learnerId = command.learnerId();
+        this.status = "in_progress";
     }
 
-    public QuizAttempt(Long quizId, Long learnerId) {
-        this();
-        this.quizId = new QuizId(quizId);
-        this.learnerId = learnerId;
-    }
-
-    public void complete(Float score) {
+    public QuizAttempt complete(Float score) {
         this.score = score;
-        this.status = AttemptStatus.COMPLETED;
+        this.status = "completed";
+        return this;
     }
 
-    public void abandon() {
-        this.status = AttemptStatus.ABANDONED;
+    public QuizAttempt abandon() {
+        this.status = "abandoned";
+        return this;
+    }
+
+    public boolean isCompleted() {
+        return "completed".equalsIgnoreCase(this.status);
     }
 }

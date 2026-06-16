@@ -11,4 +11,5 @@ public interface TutorQueryService {
     Optional<Tutor> handle(GetTutorByIdQuery query);
     List<Tutor> handle(GetTutorsByAvailabilityQuery query);
     List<Tutor> handle(GetTutorsByUniversityQuery query);
+    List<Tutor> handle(GetTutorsBySpecialtyQuery query);
 }

@@ -1,6 +1,6 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.workspace.interfaces.rest.transform;
 
-import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.entities.Message;
+import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.aggregates.Message;
 import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.interfaces.rest.resources.MessageResource;
 
 public class MessageResourceFromEntityAssembler {
@@ -9,7 +9,9 @@ public class MessageResourceFromEntityAssembler {
                 entity.getId(),
                 entity.getContent(),
                 entity.getSenderId(),
-                entity.getSessionId().value(),
-                entity.getSentAt());
+                entity.getSessionId(),
+                entity.getSentAt(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt());
     }
 }

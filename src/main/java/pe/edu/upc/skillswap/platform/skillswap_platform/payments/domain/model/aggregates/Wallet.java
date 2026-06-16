@@ -1,56 +1,71 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.aggregates;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.Setter;
-import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.valueobjects.Currency;
-import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.commands.CreateWalletCommand;
+import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 
-@Getter
 @Entity
 @Table(name = "wallets")
-public class Wallet extends AbstractDomainAggregateRoot<Wallet> {
+public class Wallet extends AuditableAbstractAggregateRoot<Wallet> {
 
-    @Setter
+    @Getter
+    @NotNull
+    @Min(1)
     @Column(name = "tutor_id", nullable = false, unique = true)
     private Long tutorId;
 
-    @Setter
+    @Getter
+    @Min(0)
+    @Column(nullable = false)
     private Double balance;
 
-    @Enumerated(EnumType.STRING)
+    @Getter
+    @NotBlank
     @Column(nullable = false)
-    private Currency currency;
+    private String currency;
 
-    @Setter
+    @Getter
     @Column(name = "bank_name")
     private String bankName;
 
-    @Setter
+    @Getter
     @Column(name = "account_number")
     private String accountNumber;
 
-    public Wallet() {
+    public Wallet() {}
+
+    public Wallet(CreateWalletCommand command) {
+        this.tutorId = command.tutorId();
         this.balance = 0.0;
-        this.currency = Currency.PEN;
+        this.currency = command.currency();
+        this.bankName = command.bankName();
+        this.accountNumber = command.accountNumber();
     }
 
-    public Wallet(Long tutorId, Currency currency, String bankName, String accountNumber) {
-        this();
-        this.tutorId = tutorId;
-        this.currency = currency;
-        this.bankName = bankName;
-        this.accountNumber = accountNumber;
-    }
-
-    public void addFunds(Double amount) {
+    public Wallet addFunds(Double amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
         this.balance += amount;
+        return this;
     }
 
-    public void withdrawFunds(Double amount) {
+    public Wallet withdrawFunds(Double amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
         if (amount > this.balance) {
-            throw new IllegalArgumentException("[Wallet] Insufficient funds");
+            throw new IllegalArgumentException("Insufficient funds");
         }
         this.balance -= amount;
+        return this;
+    }
+
+    public boolean hasSufficientFunds(Double amount) {
+        return this.balance >= amount;
     }
 }

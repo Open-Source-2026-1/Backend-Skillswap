@@ -1,11 +1,13 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.learning.interfaces.rest.resources;
 
-import pe.edu.upc.skillswap.platform.skillswap_platform.learning.domain.model.valueobjects.AttemptStatus;
+import java.util.Date;
 
 public record QuizAttemptResource(
         Long id,
         Long quizId,
         Long learnerId,
         Float score,
-        AttemptStatus status) {
+        String status,
+        Date createdAt,
+        Date updatedAt) {
 }

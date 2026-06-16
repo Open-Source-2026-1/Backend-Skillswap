@@ -6,11 +6,11 @@ import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.interfaces.res
 public class CreateTutoringSessionCommandFromResourceAssembler {
     public static CreateTutoringSessionCommand toCommandFromResource(CreateTutoringSessionResource resource) {
         return new CreateTutoringSessionCommand(
-                resource.topic(),
                 resource.learnerId(),
                 resource.tutorId(),
-                resource.scheduledAt(),
+                resource.topic(),
                 resource.message(),
-                resource.studentLevel());
+                resource.studentLevel(),
+                resource.scheduledAt());
     }
 }

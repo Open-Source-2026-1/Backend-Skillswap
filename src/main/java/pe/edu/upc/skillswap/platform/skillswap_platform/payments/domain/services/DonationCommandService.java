@@ -6,7 +6,6 @@ import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.co
 import java.util.Optional;
 
 public interface DonationCommandService {
-    Optional<Donation> handle(CreateDonationCommand command);
+    Long handle(CreateDonationCommand command);
     Optional<Donation> handle(UpdateDonationStatusCommand command);
-    void handle(DeleteDonationCommand command);
 }

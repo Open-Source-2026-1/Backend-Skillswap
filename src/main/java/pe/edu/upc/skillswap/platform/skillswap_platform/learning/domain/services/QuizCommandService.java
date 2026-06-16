@@ -6,7 +6,7 @@ import pe.edu.upc.skillswap.platform.skillswap_platform.learning.domain.model.co
 import java.util.Optional;
 
 public interface QuizCommandService {
-    Optional<Quiz> handle(CreateQuizCommand command);
+    Long handle(CreateQuizCommand command);
     Optional<Quiz> handle(UpdateQuizCommand command);
     void handle(DeleteQuizCommand command);
 }

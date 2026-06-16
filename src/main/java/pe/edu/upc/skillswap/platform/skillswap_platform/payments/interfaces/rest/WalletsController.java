@@ -34,7 +34,9 @@ public class WalletsController {
     @PostMapping
     public ResponseEntity<WalletResource> createWallet(@RequestBody CreateWalletResource resource) {
         var command = CreateWalletCommandFromResourceAssembler.toCommandFromResource(resource);
-        var wallet = walletCommandService.handle(command);
+        var walletId = this.walletCommandService.handle(command);
+        if (walletId.equals(0L)) return ResponseEntity.badRequest().build();
+        var wallet = this.walletQueryService.handle(new GetWalletByIdQuery(walletId));
         if (wallet.isEmpty()) return ResponseEntity.badRequest().build();
         var walletResource = WalletResourceFromEntityAssembler.toResourceFromEntity(wallet.get());
         return new ResponseEntity<>(walletResource, HttpStatus.CREATED);
@@ -42,8 +44,7 @@ public class WalletsController {
 
     @GetMapping
     public ResponseEntity<List<WalletResource>> getAllWallets() {
-        var query = new GetAllWalletsQuery();
-        var wallets = walletQueryService.handle(query);
+        var wallets = this.walletQueryService.handle(new GetAllWalletsQuery());
         var resources = wallets.stream()
                 .map(WalletResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
@@ -52,8 +53,7 @@ public class WalletsController {
 
     @GetMapping("/{walletId}")
     public ResponseEntity<WalletResource> getWalletById(@PathVariable Long walletId) {
-        var query = new GetWalletByIdQuery(walletId);
-        var wallet = walletQueryService.handle(query);
+        var wallet = this.walletQueryService.handle(new GetWalletByIdQuery(walletId));
         if (wallet.isEmpty()) return ResponseEntity.notFound().build();
         var resource = WalletResourceFromEntityAssembler.toResourceFromEntity(wallet.get());
         return ResponseEntity.ok(resource);
@@ -61,28 +61,27 @@ public class WalletsController {
 
     @GetMapping("/tutor/{tutorId}")
     public ResponseEntity<WalletResource> getWalletByTutorId(@PathVariable Long tutorId) {
-        var query = new GetWalletByTutorIdQuery(tutorId);
-        var wallet = walletQueryService.handle(query);
+        var wallet = this.walletQueryService.handle(new GetWalletByTutorIdQuery(tutorId));
         if (wallet.isEmpty()) return ResponseEntity.notFound().build();
         var resource = WalletResourceFromEntityAssembler.toResourceFromEntity(wallet.get());
         return ResponseEntity.ok(resource);
     }
 
-    @PutMapping("/{walletId}/add-funds")
+    @PatchMapping("/{walletId}/add-funds")
     public ResponseEntity<WalletResource> addFunds(@PathVariable Long walletId,
                                                    @RequestBody WalletFundsResource resource) {
         var command = new AddFundsToWalletCommand(walletId, resource.amount());
-        var wallet = walletCommandService.handle(command);
+        var wallet = this.walletCommandService.handle(command);
         if (wallet.isEmpty()) return ResponseEntity.notFound().build();
         var walletResource = WalletResourceFromEntityAssembler.toResourceFromEntity(wallet.get());
         return ResponseEntity.ok(walletResource);
     }
 
-    @PutMapping("/{walletId}/withdraw-funds")
+    @PatchMapping("/{walletId}/withdraw-funds")
     public ResponseEntity<WalletResource> withdrawFunds(@PathVariable Long walletId,
                                                         @RequestBody WalletFundsResource resource) {
         var command = new WithdrawFundsFromWalletCommand(walletId, resource.amount());
-        var wallet = walletCommandService.handle(command);
+        var wallet = this.walletCommandService.handle(command);
         if (wallet.isEmpty()) return ResponseEntity.notFound().build();
         var walletResource = WalletResourceFromEntityAssembler.toResourceFromEntity(wallet.get());
         return ResponseEntity.ok(walletResource);

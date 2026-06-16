@@ -6,7 +6,7 @@ import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.co
 import java.util.Optional;
 
 public interface WalletCommandService {
-    Optional<Wallet> handle(CreateWalletCommand command);
+    Long handle(CreateWalletCommand command);
     Optional<Wallet> handle(AddFundsToWalletCommand command);
     Optional<Wallet> handle(WithdrawFundsFromWalletCommand command);
 }

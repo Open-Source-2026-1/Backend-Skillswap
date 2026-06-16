@@ -10,4 +10,5 @@ public interface QuizQueryService {
     List<Quiz> handle(GetAllQuizzesQuery query);
     Optional<Quiz> handle(GetQuizByIdQuery query);
     List<Quiz> handle(GetQuizzesByTutorIdQuery query);
+    List<Quiz> handle(GetQuizzesByCourseQuery query);
 }

@@ -35,7 +35,9 @@ public class QuizAttemptsController {
     public ResponseEntity<QuizAttemptResource> createQuizAttempt(
             @RequestBody CreateQuizAttemptResource resource) {
         var command = CreateQuizAttemptCommandFromResourceAssembler.toCommandFromResource(resource);
-        var attempt = quizAttemptCommandService.handle(command);
+        var attemptId = this.quizAttemptCommandService.handle(command);
+        if (attemptId.equals(0L)) return ResponseEntity.badRequest().build();
+        var attempt = this.quizAttemptQueryService.handle(new GetQuizAttemptByIdQuery(attemptId));
         if (attempt.isEmpty()) return ResponseEntity.badRequest().build();
         var attemptResource = QuizAttemptResourceFromEntityAssembler.toResourceFromEntity(attempt.get());
         return new ResponseEntity<>(attemptResource, HttpStatus.CREATED);
@@ -43,8 +45,7 @@ public class QuizAttemptsController {
 
     @GetMapping
     public ResponseEntity<List<QuizAttemptResource>> getAllQuizAttempts() {
-        var query = new GetAllQuizAttemptsQuery();
-        var attempts = quizAttemptQueryService.handle(query);
+        var attempts = this.quizAttemptQueryService.handle(new GetAllQuizAttemptsQuery());
         var resources = attempts.stream()
                 .map(QuizAttemptResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
@@ -53,8 +54,7 @@ public class QuizAttemptsController {
 
     @GetMapping("/{attemptId}")
     public ResponseEntity<QuizAttemptResource> getQuizAttemptById(@PathVariable Long attemptId) {
-        var query = new GetQuizAttemptByIdQuery(attemptId);
-        var attempt = quizAttemptQueryService.handle(query);
+        var attempt = this.quizAttemptQueryService.handle(new GetQuizAttemptByIdQuery(attemptId));
         if (attempt.isEmpty()) return ResponseEntity.notFound().build();
         var resource = QuizAttemptResourceFromEntityAssembler.toResourceFromEntity(attempt.get());
         return ResponseEntity.ok(resource);
@@ -63,8 +63,7 @@ public class QuizAttemptsController {
     @GetMapping("/learner/{learnerId}")
     public ResponseEntity<List<QuizAttemptResource>> getQuizAttemptsByLearnerId(
             @PathVariable Long learnerId) {
-        var query = new GetQuizAttemptsByLearnerIdQuery(learnerId);
-        var attempts = quizAttemptQueryService.handle(query);
+        var attempts = this.quizAttemptQueryService.handle(new GetQuizAttemptsByLearnerIdQuery(learnerId));
         var resources = attempts.stream()
                 .map(QuizAttemptResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
@@ -74,19 +73,18 @@ public class QuizAttemptsController {
     @GetMapping("/quiz/{quizId}")
     public ResponseEntity<List<QuizAttemptResource>> getQuizAttemptsByQuizId(
             @PathVariable Long quizId) {
-        var query = new GetQuizAttemptsByQuizIdQuery(quizId);
-        var attempts = quizAttemptQueryService.handle(query);
+        var attempts = this.quizAttemptQueryService.handle(new GetQuizAttemptsByQuizIdQuery(quizId));
         var resources = attempts.stream()
                 .map(QuizAttemptResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(resources);
     }
 
-    @PutMapping("/{attemptId}/complete")
+    @PatchMapping("/{attemptId}/complete")
     public ResponseEntity<QuizAttemptResource> completeQuizAttempt(@PathVariable Long attemptId,
                                                                    @RequestBody CompleteQuizAttemptResource resource) {
         var command = new CompleteQuizAttemptCommand(attemptId, resource.score());
-        var attempt = quizAttemptCommandService.handle(command);
+        var attempt = this.quizAttemptCommandService.handle(command);
         if (attempt.isEmpty()) return ResponseEntity.notFound().build();
         var attemptResource = QuizAttemptResourceFromEntityAssembler.toResourceFromEntity(attempt.get());
         return ResponseEntity.ok(attemptResource);
@@ -95,7 +93,7 @@ public class QuizAttemptsController {
     @DeleteMapping("/{attemptId}")
     public ResponseEntity<?> deleteQuizAttempt(@PathVariable Long attemptId) {
         var command = new DeleteQuizAttemptCommand(attemptId);
-        quizAttemptCommandService.handle(command);
+        this.quizAttemptCommandService.handle(command);
         return ResponseEntity.noContent().build();
     }
 }

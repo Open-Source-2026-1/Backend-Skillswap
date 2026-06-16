@@ -14,6 +14,8 @@ public class DonationResourceFromEntityAssembler {
                 entity.getNetAmount(),
                 entity.getCommission(),
                 entity.getCurrency(),
-                entity.getStatus());
+                entity.getStatus(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt());
     }
 }

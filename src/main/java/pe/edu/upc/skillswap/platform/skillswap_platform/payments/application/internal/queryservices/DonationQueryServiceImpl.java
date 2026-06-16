@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.aggregates.Donation;
 import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.queries.*;
 import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.services.DonationQueryService;
-import pe.edu.upc.skillswap.platform.skillswap_platform.payments.infrastructure.persistence.jpa.repositories.DonationJpaRepository;
+import pe.edu.upc.skillswap.platform.skillswap_platform.payments.infrastructure.persistence.jpa.repositories.DonationRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -12,29 +12,34 @@ import java.util.Optional;
 @Service
 public class DonationQueryServiceImpl implements DonationQueryService {
 
-    private final DonationJpaRepository donationJpaRepository;
+    private final DonationRepository donationRepository;
 
-    public DonationQueryServiceImpl(DonationJpaRepository donationJpaRepository) {
-        this.donationJpaRepository = donationJpaRepository;
+    public DonationQueryServiceImpl(DonationRepository donationRepository) {
+        this.donationRepository = donationRepository;
     }
 
     @Override
     public List<Donation> handle(GetAllDonationsQuery query) {
-        return donationJpaRepository.findAll();
+        return this.donationRepository.findAll();
     }
 
     @Override
     public Optional<Donation> handle(GetDonationByIdQuery query) {
-        return donationJpaRepository.findById(query.donationId());
+        return this.donationRepository.findById(query.donationId());
     }
 
     @Override
     public List<Donation> handle(GetDonationsByDonorIdQuery query) {
-        return donationJpaRepository.findByDonorId(query.donorId());
+        return this.donationRepository.findByDonorId(query.donorId());
     }
 
     @Override
     public List<Donation> handle(GetDonationsByTutorIdQuery query) {
-        return donationJpaRepository.findByTutorId(query.tutorId());
+        return this.donationRepository.findByTutorId(query.tutorId());
+    }
+
+    @Override
+    public List<Donation> handle(GetDonationsByStatusQuery query) {
+        return this.donationRepository.findByStatus(query.status());
     }
 }

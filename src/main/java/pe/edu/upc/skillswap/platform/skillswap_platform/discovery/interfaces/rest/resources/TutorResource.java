@@ -1,5 +1,6 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.discovery.interfaces.rest.resources;
 
+import java.util.Date;
 import java.util.List;
 
 public record TutorResource(
@@ -13,5 +14,7 @@ public record TutorResource(
         String avatarUrl,
         String specialty,
         String portfolioUrl,
-        Integer yearsExperience) {
+        Integer yearsExperience,
+        Date createdAt,
+        Date updatedAt) {
 }

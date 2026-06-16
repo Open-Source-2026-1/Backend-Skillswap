@@ -33,7 +33,9 @@ public class QuizzesController {
     @PostMapping
     public ResponseEntity<QuizResource> createQuiz(@RequestBody CreateQuizResource resource) {
         var command = CreateQuizCommandFromResourceAssembler.toCommandFromResource(resource);
-        var quiz = quizCommandService.handle(command);
+        var quizId = this.quizCommandService.handle(command);
+        if (quizId.equals(0L)) return ResponseEntity.badRequest().build();
+        var quiz = this.quizQueryService.handle(new GetQuizByIdQuery(quizId));
         if (quiz.isEmpty()) return ResponseEntity.badRequest().build();
         var quizResource = QuizResourceFromEntityAssembler.toResourceFromEntity(quiz.get());
         return new ResponseEntity<>(quizResource, HttpStatus.CREATED);
@@ -41,8 +43,7 @@ public class QuizzesController {
 
     @GetMapping
     public ResponseEntity<List<QuizResource>> getAllQuizzes() {
-        var query = new GetAllQuizzesQuery();
-        var quizzes = quizQueryService.handle(query);
+        var quizzes = this.quizQueryService.handle(new GetAllQuizzesQuery());
         var resources = quizzes.stream()
                 .map(QuizResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
@@ -51,8 +52,7 @@ public class QuizzesController {
 
     @GetMapping("/{quizId}")
     public ResponseEntity<QuizResource> getQuizById(@PathVariable Long quizId) {
-        var query = new GetQuizByIdQuery(quizId);
-        var quiz = quizQueryService.handle(query);
+        var quiz = this.quizQueryService.handle(new GetQuizByIdQuery(quizId));
         if (quiz.isEmpty()) return ResponseEntity.notFound().build();
         var resource = QuizResourceFromEntityAssembler.toResourceFromEntity(quiz.get());
         return ResponseEntity.ok(resource);
@@ -60,8 +60,16 @@ public class QuizzesController {
 
     @GetMapping("/tutor/{tutorId}")
     public ResponseEntity<List<QuizResource>> getQuizzesByTutorId(@PathVariable Long tutorId) {
-        var query = new GetQuizzesByTutorIdQuery(tutorId);
-        var quizzes = quizQueryService.handle(query);
+        var quizzes = this.quizQueryService.handle(new GetQuizzesByTutorIdQuery(tutorId));
+        var resources = quizzes.stream()
+                .map(QuizResourceFromEntityAssembler::toResourceFromEntity)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(resources);
+    }
+
+    @GetMapping("/course/{course}")
+    public ResponseEntity<List<QuizResource>> getQuizzesByCourse(@PathVariable String course) {
+        var quizzes = this.quizQueryService.handle(new GetQuizzesByCourseQuery(course));
         var resources = quizzes.stream()
                 .map(QuizResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
@@ -72,7 +80,7 @@ public class QuizzesController {
     public ResponseEntity<QuizResource> updateQuiz(@PathVariable Long quizId,
                                                    @RequestBody UpdateQuizResource resource) {
         var command = UpdateQuizCommandFromResourceAssembler.toCommandFromResource(quizId, resource);
-        var quiz = quizCommandService.handle(command);
+        var quiz = this.quizCommandService.handle(command);
         if (quiz.isEmpty()) return ResponseEntity.notFound().build();
         var quizResource = QuizResourceFromEntityAssembler.toResourceFromEntity(quiz.get());
         return ResponseEntity.ok(quizResource);
@@ -81,7 +89,7 @@ public class QuizzesController {
     @DeleteMapping("/{quizId}")
     public ResponseEntity<?> deleteQuiz(@PathVariable Long quizId) {
         var command = new DeleteQuizCommand(quizId);
-        quizCommandService.handle(command);
+        this.quizCommandService.handle(command);
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,14 +1,17 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.workspace.interfaces.rest.resources;
 
-import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.valueobjects.SessionStatus;
-
 import java.time.LocalDateTime;
+import java.util.Date;
 
 public record TutoringSessionResource(
         Long id,
-        String topic,
-        SessionStatus status,
         Long learnerId,
         Long tutorId,
-        LocalDateTime scheduledAt) {
+        String topic,
+        String message,
+        String studentLevel,
+        String status,
+        LocalDateTime scheduledAt,
+        Date createdAt,
+        Date updatedAt) {
 }

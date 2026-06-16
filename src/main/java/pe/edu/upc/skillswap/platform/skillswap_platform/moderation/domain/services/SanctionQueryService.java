@@ -1,10 +1,7 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.services;
 
 import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.aggregates.Sanction;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetAllSanctionsQuery;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetSanctionByIdQuery;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetSanctionsByReportIdQuery;
-import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.GetSanctionsByUserQuery;
+import pe.edu.upc.skillswap.platform.skillswap_platform.moderation.domain.model.queries.*;
 
 import java.util.List;
 import java.util.Optional;

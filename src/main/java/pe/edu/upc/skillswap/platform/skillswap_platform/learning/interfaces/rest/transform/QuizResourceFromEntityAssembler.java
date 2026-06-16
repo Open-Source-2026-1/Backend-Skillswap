@@ -11,6 +11,8 @@ public class QuizResourceFromEntityAssembler {
                 entity.getCourse(),
                 entity.getCreatedBy(),
                 entity.getTutorId(),
-                entity.getQuestions());
+                entity.getQuestions(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt());
     }
 }

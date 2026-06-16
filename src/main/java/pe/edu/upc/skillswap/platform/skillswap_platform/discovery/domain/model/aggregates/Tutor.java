@@ -1,71 +1,98 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.discovery.domain.model.aggregates;
 
 import jakarta.persistence.*;
-import lombok.Getter;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Setter;
-import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+import lombok.Getter;
+import pe.edu.upc.skillswap.platform.skillswap_platform.discovery.domain.model.commands.CreateTutorCommand;
+import pe.edu.upc.skillswap.platform.skillswap_platform.discovery.domain.model.commands.UpdateTutorCommand;
+import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
 
 import java.util.List;
 
-@Getter
 @Entity
 @Table(name = "tutors")
-public class Tutor extends AbstractDomainAggregateRoot<Tutor> {
+public class Tutor extends AuditableAbstractAggregateRoot<Tutor> {
 
-    @Setter
+    @Getter
+    @NotBlank
     @Column(nullable = false)
     private String name;
 
-    @Setter
+    @Getter
+    @Column(name = "university")
     private String university;
 
-    @Setter
+    @Getter
     @Column(columnDefinition = "TEXT")
     private String bio;
 
-    @Setter
+    @Getter
+    @Min(0)
+    @Max(5)
+    @Column(name = "rating")
     private Double rating;
 
+    @Getter
     @Setter
     @ElementCollection
     @CollectionTable(name = "tutor_skills", joinColumns = @JoinColumn(name = "tutor_id"))
     @Column(name = "skill")
     private List<String> skills;
 
-    @Setter
+    @Getter
+    @Column(name = "available")
     private Boolean available;
 
-    @Setter
+    @Getter
     @Column(name = "avatar_url")
     private String avatarUrl;
 
-    @Setter
+    @Getter
+    @Column(name = "specialty")
     private String specialty;
 
-    @Setter
+    @Getter
     @Column(name = "portfolio_url")
     private String portfolioUrl;
 
-    @Setter
+    @Getter
     @Column(name = "years_experience")
     private Integer yearsExperience;
 
-
     public Tutor() {}
 
-    public Tutor(String name, String university, String bio, Double rating,
-                 List<String> skills, Boolean available, String avatarUrl,
-                 String specialty, String portfolioUrl, Integer yearsExperience) {
-        this.name = name;
-        this.university = university;
-        this.bio = bio;
-        this.rating = rating;
-        this.skills = skills;
-        this.available = available;
-        this.avatarUrl = avatarUrl;
-        this.specialty = specialty;
-        this.portfolioUrl = portfolioUrl;
-        this.yearsExperience = yearsExperience;
+    public Tutor(CreateTutorCommand command) {
+        this.name = command.name();
+        this.university = command.university();
+        this.bio = command.bio();
+        this.rating = command.rating();
+        this.skills = command.skills();
+        this.available = command.available();
+        this.avatarUrl = command.avatarUrl();
+        this.specialty = command.specialty();
+        this.portfolioUrl = command.portfolioUrl();
+        this.yearsExperience = command.yearsExperience();
     }
 
+    public Tutor updateInformation(UpdateTutorCommand command) {
+        this.name = command.name();
+        this.university = command.university();
+        this.bio = command.bio();
+        this.rating = command.rating();
+        this.skills = command.skills();
+        this.available = command.available();
+        this.avatarUrl = command.avatarUrl();
+        this.specialty = command.specialty();
+        this.portfolioUrl = command.portfolioUrl();
+        this.yearsExperience = command.yearsExperience();
+        return this;
+    }
+
+    public boolean isAvailable() {
+        return Boolean.TRUE.equals(this.available);
+    }
 }

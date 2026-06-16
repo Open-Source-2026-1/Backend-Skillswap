@@ -33,7 +33,9 @@ public class TutorsController {
     @PostMapping
     public ResponseEntity<TutorResource> createTutor(@RequestBody CreateTutorResource resource) {
         var command = CreateTutorCommandFromResourceAssembler.toCommandFromResource(resource);
-        var tutor = tutorCommandService.handle(command);
+        var tutorId = this.tutorCommandService.handle(command);
+        if (tutorId.equals(0L)) return ResponseEntity.badRequest().build();
+        var tutor = this.tutorQueryService.handle(new GetTutorByIdQuery(tutorId));
         if (tutor.isEmpty()) return ResponseEntity.badRequest().build();
         var tutorResource = TutorResourceFromEntityAssembler.toResourceFromEntity(tutor.get());
         return new ResponseEntity<>(tutorResource, HttpStatus.CREATED);
@@ -41,8 +43,7 @@ public class TutorsController {
 
     @GetMapping
     public ResponseEntity<List<TutorResource>> getAllTutors() {
-        var query = new GetAllTutorsQuery();
-        var tutors = tutorQueryService.handle(query);
+        var tutors = this.tutorQueryService.handle(new GetAllTutorsQuery());
         var resources = tutors.stream()
                 .map(TutorResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
@@ -51,8 +52,7 @@ public class TutorsController {
 
     @GetMapping("/{tutorId}")
     public ResponseEntity<TutorResource> getTutorById(@PathVariable Long tutorId) {
-        var query = new GetTutorByIdQuery(tutorId);
-        var tutor = tutorQueryService.handle(query);
+        var tutor = this.tutorQueryService.handle(new GetTutorByIdQuery(tutorId));
         if (tutor.isEmpty()) return ResponseEntity.notFound().build();
         var resource = TutorResourceFromEntityAssembler.toResourceFromEntity(tutor.get());
         return ResponseEntity.ok(resource);
@@ -60,8 +60,7 @@ public class TutorsController {
 
     @GetMapping("/available/{available}")
     public ResponseEntity<List<TutorResource>> getTutorsByAvailability(@PathVariable Boolean available) {
-        var query = new GetTutorsByAvailabilityQuery(available);
-        var tutors = tutorQueryService.handle(query);
+        var tutors = this.tutorQueryService.handle(new GetTutorsByAvailabilityQuery(available));
         var resources = tutors.stream()
                 .map(TutorResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
@@ -70,8 +69,16 @@ public class TutorsController {
 
     @GetMapping("/university/{university}")
     public ResponseEntity<List<TutorResource>> getTutorsByUniversity(@PathVariable String university) {
-        var query = new GetTutorsByUniversityQuery(university);
-        var tutors = tutorQueryService.handle(query);
+        var tutors = this.tutorQueryService.handle(new GetTutorsByUniversityQuery(university));
+        var resources = tutors.stream()
+                .map(TutorResourceFromEntityAssembler::toResourceFromEntity)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(resources);
+    }
+
+    @GetMapping("/specialty/{specialty}")
+    public ResponseEntity<List<TutorResource>> getTutorsBySpecialty(@PathVariable String specialty) {
+        var tutors = this.tutorQueryService.handle(new GetTutorsBySpecialtyQuery(specialty));
         var resources = tutors.stream()
                 .map(TutorResourceFromEntityAssembler::toResourceFromEntity)
                 .collect(Collectors.toList());
@@ -82,7 +89,7 @@ public class TutorsController {
     public ResponseEntity<TutorResource> updateTutor(@PathVariable Long tutorId,
                                                      @RequestBody UpdateTutorResource resource) {
         var command = UpdateTutorCommandFromResourceAssembler.toCommandFromResource(tutorId, resource);
-        var tutor = tutorCommandService.handle(command);
+        var tutor = this.tutorCommandService.handle(command);
         if (tutor.isEmpty()) return ResponseEntity.notFound().build();
         var tutorResource = TutorResourceFromEntityAssembler.toResourceFromEntity(tutor.get());
         return ResponseEntity.ok(tutorResource);
@@ -91,7 +98,7 @@ public class TutorsController {
     @DeleteMapping("/{tutorId}")
     public ResponseEntity<?> deleteTutor(@PathVariable Long tutorId) {
         var command = new DeleteTutorCommand(tutorId);
-        tutorCommandService.handle(command);
+        this.tutorCommandService.handle(command);
         return ResponseEntity.noContent().build();
     }
 }

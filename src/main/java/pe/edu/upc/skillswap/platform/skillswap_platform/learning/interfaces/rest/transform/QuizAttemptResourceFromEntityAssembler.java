@@ -7,9 +7,11 @@ public class QuizAttemptResourceFromEntityAssembler {
     public static QuizAttemptResource toResourceFromEntity(QuizAttempt entity) {
         return new QuizAttemptResource(
                 entity.getId(),
-                entity.getQuizId().value(),
+                entity.getQuizId(),
                 entity.getLearnerId(),
                 entity.getScore(),
-                entity.getStatus());
+                entity.getStatus(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt());
     }
 }

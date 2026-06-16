@@ -11,6 +11,8 @@ public class WalletResourceFromEntityAssembler {
                 entity.getBalance(),
                 entity.getCurrency(),
                 entity.getBankName(),
-                entity.getAccountNumber());
+                entity.getAccountNumber(),
+                entity.getCreatedAt(),
+                entity.getUpdatedAt());
     }
 }

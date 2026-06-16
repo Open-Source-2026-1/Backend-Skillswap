@@ -1,66 +1,81 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.aggregates;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.Setter;
-import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.valueobjects.LearnerId;
-import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.valueobjects.SessionStatus;
-import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.valueobjects.TutorId;
-import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AbstractDomainAggregateRoot;
+import pe.edu.upc.skillswap.platform.skillswap_platform.shared.domain.model.aggregates.AuditableAbstractAggregateRoot;
+import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.commands.CreateTutoringSessionCommand;
+import pe.edu.upc.skillswap.platform.skillswap_platform.workspace.domain.model.commands.UpdateTutoringSessionCommand;
 
 import java.time.LocalDateTime;
 
-@Getter
 @Entity
 @Table(name = "tutoring_sessions")
-public class TutoringSession extends AbstractDomainAggregateRoot<TutoringSession> {
+public class TutoringSession extends AuditableAbstractAggregateRoot<TutoringSession> {
 
-    @Setter
+    @Getter
+    @NotNull
+    @Column(name = "learner_id", nullable = false)
+    private Long learnerId;
+
+    @Getter
+    @NotNull
+    @Column(name = "tutor_id", nullable = false)
+    private Long tutorId;
+
+    @Getter
+    @NotBlank
+    @Column(nullable = false)
     private String topic;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private SessionStatus status;
-
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "learner_id", nullable = false))
-    })
-    private LearnerId learnerId;
-
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "value", column = @Column(name = "tutor_id", nullable = false))
-    })
-    private TutorId tutorId;
-
-    @Setter
-    @Column(name = "scheduled_at")
-    private LocalDateTime scheduledAt;
-
-    @Setter
+    @Getter
     @Column(name = "message")
     private String message;
 
-    @Setter
+    @Getter
     @Column(name = "student_level")
     private String studentLevel;
 
-    public TutoringSession() {
-        this.status = SessionStatus.PENDING;
+    @Getter
+    @NotBlank
+    @Column(nullable = false)
+    private String status;
+
+    @Getter
+    @Column(name = "scheduled_at")
+    private LocalDateTime scheduledAt;
+
+    public TutoringSession() {}
+
+    public TutoringSession(CreateTutoringSessionCommand command) {
+        this.learnerId = command.learnerId();
+        this.tutorId = command.tutorId();
+        this.topic = command.topic();
+        this.message = command.message();
+        this.studentLevel = command.studentLevel();
+        this.status = "pending";
+        this.scheduledAt = command.scheduledAt();
     }
 
-    public TutoringSession(String topic, Long learnerId, Long tutorId, LocalDateTime scheduledAt, String message, String studentLevel) {
-        this();
-        this.topic = topic;
-        this.learnerId = new LearnerId(learnerId);
-        this.tutorId = new TutorId(tutorId);
-        this.scheduledAt = scheduledAt;
-        this.message = message;
-        this.studentLevel = studentLevel;
+    public TutoringSession updateInformation(UpdateTutoringSessionCommand command) {
+        this.topic = command.topic();
+        this.message = command.message();
+        this.studentLevel = command.studentLevel();
+        this.scheduledAt = command.scheduledAt();
+        return this;
     }
 
-    public void updateStatus(SessionStatus status) {
+    public TutoringSession updateStatus(String status) {
         this.status = status;
+        return this;
+    }
+
+    public boolean isPending() {
+        return "pending".equalsIgnoreCase(this.status);
+    }
+
+    public boolean isScheduled() {
+        return "scheduled".equalsIgnoreCase(this.status);
     }
 }

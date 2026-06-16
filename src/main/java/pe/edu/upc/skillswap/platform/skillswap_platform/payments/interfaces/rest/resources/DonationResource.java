@@ -1,7 +1,6 @@
 package pe.edu.upc.skillswap.platform.skillswap_platform.payments.interfaces.rest.resources;
 
-import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.valueobjects.Currency;
-import pe.edu.upc.skillswap.platform.skillswap_platform.payments.domain.model.valueobjects.DonationStatus;
+import java.util.Date;
 
 public record DonationResource(
         Long id,
@@ -11,6 +10,8 @@ public record DonationResource(
         Double amount,
         Double netAmount,
         Double commission,
-        Currency currency,
-        DonationStatus status) {
+        String currency,
+        String status,
+        Date createdAt,
+        Date updatedAt) {
 }

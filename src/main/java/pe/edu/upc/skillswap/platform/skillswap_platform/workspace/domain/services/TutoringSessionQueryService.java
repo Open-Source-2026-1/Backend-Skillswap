@@ -11,4 +11,5 @@ public interface TutoringSessionQueryService {
     Optional<TutoringSession> handle(GetTutoringSessionByIdQuery query);
     List<TutoringSession> handle(GetTutoringSessionsByLearnerIdQuery query);
     List<TutoringSession> handle(GetTutoringSessionsByTutorIdQuery query);
+    List<TutoringSession> handle(GetTutoringSessionsByStatusQuery query);
 }
