@@ -54,7 +54,7 @@ public class TutoringSession extends AuditableAbstractAggregateRoot<TutoringSess
         this.topic = command.topic();
         this.message = command.message();
         this.studentLevel = command.studentLevel();
-        this.status = "pending";
+        this.status = "PENDING";
         this.scheduledAt = command.scheduledAt();
     }
 
@@ -67,7 +67,7 @@ public class TutoringSession extends AuditableAbstractAggregateRoot<TutoringSess
     }
 
     public TutoringSession updateStatus(String status) {
-        this.status = status;
+        this.status = status.toUpperCase();
         return this;
     }
 
